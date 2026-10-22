@@ -7,6 +7,7 @@ PYTHON_BIN ?= python3.11
 VENV ?= .venv
 API_HOST ?= 127.0.0.1
 API_PORT ?= 8080
+UI_PORT ?= 8501
 PY := $(VENV)/bin/python
 UV_COMPILE := uv pip compile pyproject.toml --python-version 3.11 --universal \
 	--annotation-style line --custom-compile-command "make lock" --quiet
@@ -52,8 +53,9 @@ check-retrieval: ## Measure top-k retrieval hit rate on facts from FACTS.md (rea
 api: ## Run the FastAPI backend (API_HOST/API_PORT, default 127.0.0.1:8080; docs at /docs)
 	$(PY) -m uvicorn app.api.main:app --host $(API_HOST) --port $(API_PORT) --no-access-log
 
-ui: ## Run the Streamlit chat UI
-	@echo "ui: not implemented yet (Streamlit UI lands in P6)."
+ui: ## Run the Streamlit chat UI (UI_PORT, default 8501; talks to the API at API_BASE_URL)
+	$(PY) -m streamlit run ui/streamlit_app.py --server.port $(UI_PORT) \
+		--server.headless true --browser.gatherUsageStats false
 
 eval: ## Run the evaluation suite and write eval/reports/
 	@echo "eval: not implemented yet (evaluation lands in P7)."

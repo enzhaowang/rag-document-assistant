@@ -68,8 +68,10 @@ class Settings(BaseSettings):
     rag_max_context_tokens: int = Field(default=3000, gt=0)
     rag_history_max_turns: int = Field(default=6, ge=0)
 
-    # UI -> API
+    # UI -> API. The Streamlit UI reads these (and RAG_HISTORY_MAX_TURNS) with its own
+    # small settings class so that it never imports backend code; keep defaults in sync.
     api_base_url: str = "http://localhost:8080"
+    ui_request_timeout_seconds: float = Field(default=120.0, gt=0)
 
     # HTTP API. API_CORS_ORIGINS is a comma-separated list of allowed browser origins
     # ("*" allows any origin). ADMIN_API_KEY protects POST /ingest; blank disables it.
