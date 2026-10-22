@@ -1,0 +1,2 @@
+# Treat generated PDFs as binary so diffs and merges never try to process them as text.
+*.pdf binary
