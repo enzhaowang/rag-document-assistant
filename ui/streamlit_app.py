@@ -12,6 +12,7 @@ a friendly message shown in the chat; the page itself never crashes.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -34,6 +35,9 @@ QUESTION_MAX_CHARS = 2000
 HISTORY_MESSAGE_MAX_CHARS = 8000
 # /health must answer quickly; a slow health check should not block the page.
 HEALTH_TIMEOUT_SECONDS = 5.0
+# Streamlit markdown renders text between two "$" as inline LaTeX; amounts like
+# "$250.01 to $1,000.00" would be garbled. Matches every "$" not already escaped.
+_UNESCAPED_DOLLAR = re.compile(r"(?<!\\)\$")
 
 EXAMPLE_QUESTIONS = (
     "How long is the warranty on the Lumora Thermostat T2?",
@@ -142,6 +146,9 @@ def send_chat(client: httpx.Client, question: str, history: list[dict[str, str]]
     """Call `POST /chat`; never raises. Errors become a user-facing message."""
     try:
         response = client.post("/chat", json={"question": question, "history": history})
+    except httpx.ConnectTimeout:
+        # Could not even open a connection: the backend is down, not slow.
+        return ChatOutcome(error=MSG_BACKEND_UNREACHABLE.format(url=client.base_url))
     except httpx.TimeoutException:
         return ChatOutcome(error=MSG_BACKEND_TIMEOUT)
     except httpx.HTTPError:
@@ -233,33 +240,42 @@ def format_score(score: Any) -> str:
 # --------------------------------------------------------------------------- rendering
 
 
+def escape_markdown_math(text: str) -> str:
+    """Escape "$" so Streamlit shows it literally instead of starting inline math.
+
+    Display only: the session keeps the original text, which is what is sent as history.
+    """
+    return _UNESCAPED_DOLLAR.sub(r"\\$", text)
+
+
 def render_sources(sources: list[dict[str, Any]]) -> None:
     if not sources:
         return
     st.markdown("**Sources**")
     for source in sources:
-        with st.expander(source_label(source), icon=":material/description:"):
+        with st.expander(escape_markdown_math(source_label(source)), icon=":material/description:"):
             st.caption(f"Relevance score: {format_score(source.get('score'))}")
             snippet = str(source.get("snippet") or "").strip()
             if snippet:
-                st.markdown("> " + snippet.replace("\n", "\n> "))
+                st.markdown("> " + escape_markdown_math(snippet).replace("\n", "\n> "))
 
 
 def render_message(message: dict[str, Any]) -> None:
     """Draw one stored message inside its chat bubble."""
+    text = escape_markdown_math(message["content"])
     if message["role"] == "user":
-        st.markdown(message["content"])
+        st.markdown(text)
         return
     if message.get("error"):
-        st.error(message["content"], icon=":material/error:")
+        st.error(text, icon=":material/error:")
         if message.get("request_id"):
             st.caption(f"Request ID: {message['request_id']}")
         return
     if message.get("is_answerable"):
-        st.markdown(message["content"])
+        st.markdown(text)
     else:
         # Refusals look different so they are never mistaken for an answer.
-        st.warning(message["content"], icon=":material/info:")
+        st.warning(text, icon=":material/info:")
     render_sources(message.get("sources") or [])
     meta = []
     if message.get("model"):
@@ -290,7 +306,8 @@ def render_sidebar(health: HealthInfo, settings: UISettings) -> None:
             if not health.chunk_count:
                 st.info("The index is empty. Run the ingestion first (`make ingest`).")
         elif health.reachable:
-            st.warning(health.detail or "The backend is degraded.", icon=":material/warning:")
+            detail = escape_markdown_math(health.detail or "The backend is degraded.")
+            st.warning(detail, icon=":material/warning:")
         else:
             st.error(f"Backend unreachable at {settings.api_base_url}", icon=":material/cloud_off:")
         st.button("Refresh status", icon=":material/refresh:", width="stretch")

@@ -129,6 +129,7 @@ def test_send_chat_returns_response_and_posts_contract_body() -> None:
     [
         (_raise(httpx.ConnectError("refused")), "Cannot reach the assistant backend"),
         (_raise(httpx.ReadTimeout("slow")), ui.MSG_BACKEND_TIMEOUT),
+        (_raise(httpx.ConnectTimeout("no route")), "Cannot reach the assistant backend"),
         (
             lambda r: httpx.Response(503, json={"detail": "The model is busy.", "request_id": "x"}),
             "The model is busy.",
@@ -223,6 +224,12 @@ def test_source_label_and_score_formatting() -> None:
     )
     assert ui.format_score(0.8123) == "0.81"
     assert ui.format_score(None) == "n/a"
+
+
+def test_escape_markdown_math_escapes_dollars_once() -> None:
+    assert ui.escape_markdown_math("$250.01 to $1,000.00") == r"\$250.01 to \$1,000.00"
+    assert ui.escape_markdown_math(r"already \$5") == r"already \$5"
+    assert ui.escape_markdown_math("no amounts") == "no amounts"
 
 
 # --------------------------------------------------------------------------- full page
@@ -358,3 +365,35 @@ def test_backend_down_shows_friendly_errors_without_crashing(
     backend._chat = lambda request: httpx.Response(200, json=chat_body())
     at.chat_input[0].set_value("Second try").run()
     assert backend.chat_requests[-1] == {"question": "Second try", "history": []}
+
+
+def test_dollar_amounts_are_escaped_for_display_but_history_keeps_raw_text(
+    fake_backend: Callable[..., FakeBackend],
+) -> None:
+    answer = "Refunds of $250.01 to $1,000.00 need a Team Lead; $1,000.01 to $5,000.00 a Manager."
+    snippet = "4.1 Refund Approval Thresholds: $250.01 to $1,000.00 - Team Lead."
+    refusal = "I could not find who approves refunds above $5,000 or below $10."
+    answers = iter(
+        [
+            chat_body(answer, sources=[{**SOURCE, "snippet": snippet}]),
+            chat_body(refusal, is_answerable=False, sources=[]),
+        ]
+    )
+    backend = fake_backend(chat=lambda request: httpx.Response(200, json=next(answers)))
+
+    at = _app().run()
+    at.chat_input[0].set_value("Who approves $800 or $3,000?").run()
+    at.chat_input[0].set_value("And above $5,000?").run()
+
+    assert not at.exception
+    first_user, first_answer = at.chat_message[0], at.chat_message[1]
+    assert first_user.markdown[0].value == r"Who approves \$800 or \$3,000?"
+    assert first_answer.markdown[0].value == answer.replace("$", r"\$")
+    assert at.expander[0].markdown[0].value == "> " + snippet.replace("$", r"\$")
+    assert [w.value for w in at.main.warning] == [refusal.replace("$", r"\$")]
+    # The session and the history sent to the API keep the original text.
+    assert at.session_state.messages[1]["content"] == answer
+    assert backend.chat_requests[1]["history"] == [
+        {"role": "user", "content": "Who approves $800 or $3,000?"},
+        {"role": "assistant", "content": answer},
+    ]
