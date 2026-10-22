@@ -10,7 +10,7 @@ UV_COMPILE := uv pip compile pyproject.toml --python-version 3.11 --universal \
 	--annotation-style line --custom-compile-command "make lock" --quiet
 
 .DEFAULT_GOAL := help
-.PHONY: help install lock lint format test ingest api ui eval up down
+.PHONY: help install lock lint format test check-llm ingest api ui eval up down
 
 help: ## Show available targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  %-10s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -34,6 +34,9 @@ format: ## Auto-format and auto-fix lint issues
 
 test: ## Run unit tests (integration tests are excluded)
 	$(PY) -m pytest -m "not integration"
+
+check-llm: ## Smoke-check the configured LLM/embedding endpoint (real API calls)
+	$(PY) -m scripts.check_llm_endpoint
 
 ingest: ## Parse, chunk and index the PDFs in PDF_DIR
 	@echo "ingest: not implemented yet (ingestion pipeline lands in P2/P3)."

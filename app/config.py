@@ -9,7 +9,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, SecretStr, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -33,9 +33,15 @@ class Settings(BaseSettings):
 
     # OpenAI. The key is optional at load time so that tooling which does not call
     # OpenAI (lint, unit tests, PDF generation, chunking) works without it.
+    # Any OpenAI-compatible endpoint works via OPENAI_BASE_URL, e.g. OpenRouter
+    # (https://openrouter.ai/api/v1, with model names such as "openai/gpt-4o-mini").
     openai_api_key: SecretStr | None = None
+    openai_base_url: str = Field(default="https://api.openai.com/v1", min_length=1)
     openai_chat_model: str = "gpt-4o-mini"
     openai_embedding_model: str = "text-embedding-3-small"
+    # Optional overrides for embeddings only; blank means "same as the chat endpoint".
+    openai_embedding_base_url: str | None = None
+    openai_embedding_api_key: SecretStr | None = None
 
     # Vector store
     chroma_mode: Literal["local", "http"] = "local"
@@ -59,6 +65,13 @@ class Settings(BaseSettings):
     # Logging
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
 
+    @field_validator("openai_embedding_base_url", "openai_embedding_api_key", mode="before")
+    @classmethod
+    def _blank_to_none(cls, value: object) -> object:
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
+
     @model_validator(mode="after")
     def _check_chunk_overlap(self) -> "Settings":
         if self.chunk_overlap_tokens >= self.chunk_size_tokens:
@@ -80,6 +93,22 @@ class Settings(BaseSettings):
                 "or export OPENAI_API_KEY in your shell."
             )
         return key
+
+    @property
+    def embedding_base_url(self) -> str:
+        """Base URL for the embeddings endpoint (falls back to OPENAI_BASE_URL)."""
+        return self.openai_embedding_base_url or self.openai_base_url
+
+    def require_embedding_api_key(self) -> str:
+        """Return the embeddings API key (falls back to OPENAI_API_KEY).
+
+        Call this right before constructing any embeddings client.
+        """
+        if self.openai_embedding_api_key:
+            key = self.openai_embedding_api_key.get_secret_value().strip()
+            if key:
+                return key
+        return self.require_openai_api_key()
 
 
 @lru_cache

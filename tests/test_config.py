@@ -76,10 +76,9 @@ def test_env_example_values_are_valid_and_match_defaults(clean_env: Path) -> Non
     from_example = Settings()
     defaults = Settings(_env_file=None)
 
-    # The example leaves the key blank; every other value documents the default.
-    assert from_example.model_dump(exclude={"openai_api_key"}) == defaults.model_dump(
-        exclude={"openai_api_key"}
-    )
+    # The example leaves the keys blank; every other value documents the default.
+    secrets = {"openai_api_key", "openai_embedding_api_key"}
+    assert from_example.model_dump(exclude=secrets) == defaults.model_dump(exclude=secrets)
 
 
 @pytest.mark.parametrize("value", [None, "", "   "])
@@ -103,6 +102,40 @@ def test_api_key_is_returned_but_never_printed(
     assert settings.require_openai_api_key() == "sk-test-secret"
     assert "sk-test-secret" not in repr(settings)
     assert "sk-test-secret" not in str(settings)
+
+
+def test_embedding_endpoint_falls_back_to_chat_endpoint(
+    clean_env: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-chat")
+    monkeypatch.setenv("OPENAI_BASE_URL", "https://openrouter.ai/api/v1")
+    monkeypatch.setenv("OPENAI_EMBEDDING_BASE_URL", "")
+    monkeypatch.setenv("OPENAI_EMBEDDING_API_KEY", "  ")
+
+    settings = Settings()
+
+    assert settings.embedding_base_url == "https://openrouter.ai/api/v1"
+    assert settings.require_embedding_api_key() == "sk-chat"
+
+
+def test_embedding_endpoint_overrides_are_used(
+    clean_env: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-chat")
+    monkeypatch.setenv("OPENAI_EMBEDDING_BASE_URL", "https://embeddings.example/v1")
+    monkeypatch.setenv("OPENAI_EMBEDDING_API_KEY", "sk-embed")
+
+    settings = Settings()
+
+    assert settings.openai_base_url == "https://api.openai.com/v1"
+    assert settings.embedding_base_url == "https://embeddings.example/v1"
+    assert settings.require_embedding_api_key() == "sk-embed"
+    assert "sk-embed" not in repr(settings)
+
+
+def test_embedding_key_without_any_key_raises(clean_env: Path) -> None:
+    with pytest.raises(MissingOpenAIKeyError, match="OPENAI_API_KEY is not set"):
+        Settings().require_embedding_api_key()
 
 
 @pytest.mark.parametrize(
