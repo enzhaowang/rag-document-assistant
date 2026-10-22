@@ -1,0 +1,53 @@
+{
+  "generated_at": "2026-10-22T18:02:32+08:00",
+  "config": {
+    "chunk_size": 500,
+    "chunk_overlap": 80,
+    "top_k": 6,
+    "threshold": 0.35,
+    "collection": "company_docs",
+    "max_context_tokens": 3000
+  },
+  "models": {
+    "chat": "openai/gpt-4o-mini",
+    "embedding": "openai/text-embedding-3-small",
+    "judge": "openai/gpt-4o-mini"
+  },
+  "pricing_usd_per_1m_tokens": {
+    "chat_input_per_m": 0.15,
+    "chat_output_per_m": 0.6,
+    "embedding_per_m": 0.02
+  },
+  "ragas": true,
+  "label": null,
+  "targets": {
+    "faithfulness": 0.85,
+    "citation_hit_rate": 0.85,
+    "out_of_scope_refusal_rate": 1.0,
+    "false_refusal_rate": 0.1
+  },
+  "metrics": {
+    "questions": 20,
+    "in_scope_questions": 15,
+    "out_of_scope_questions": 5,
+    "errors": 0,
+    "passed": 18,
+    "citation_hit_rate": 1.0,
+    "out_of_scope_refusal_rate": 1.0,
+    "false_refusal_rate": 0.0,
+    "key_fact_accuracy": 0.9333333333333333,
+    "retrieval_hit_rate": 1.0,
+    "avg_latency_ms": 2973.45,
+    "p95_latency_ms": 3763.0,
+    "avg_cost_usd": 0.00041685099999999993,
+    "total_cost_usd": 0.008337019999999999,
+    "faithfulness": 0.9444444444444444,
+    "faithfulness_count": 15,
+    "answer_relevancy": 0.8699461595186054,
+    "answer_relevancy_count": 15,
+    "context_precision": 0.7799259258855854,
+    "context_precision_count": 15,
+    "context_recall": 0.9666666666666667,
+    "context_recall_count": 15
+  }
+}

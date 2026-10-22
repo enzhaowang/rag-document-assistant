@@ -13,7 +13,7 @@ UV_COMPILE := uv pip compile pyproject.toml --python-version 3.11 --universal \
 	--annotation-style line --custom-compile-command "make lock" --quiet
 
 .DEFAULT_GOAL := help
-.PHONY: help install lock lint format test check-llm check-retrieval sample-pdfs ingest api ui eval up down
+.PHONY: help install lock lint format test check-llm check-retrieval sample-pdfs ingest api ui eval eval-tune up down
 
 help: ## Show available targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  %-10s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -57,8 +57,11 @@ ui: ## Run the Streamlit chat UI (UI_PORT, default 8501; talks to the API at API
 	$(PY) -m streamlit run ui/streamlit_app.py --server.port $(UI_PORT) \
 		--server.headless true --browser.gatherUsageStats false
 
-eval: ## Run the evaluation suite and write eval/reports/
-	@echo "eval: not implemented yet (evaluation lands in P7)."
+eval: ## Run the evaluation (RAGAS + custom metrics) and write eval/reports/ (real API calls)
+	$(PY) -m eval.run_eval $(ARGS)
+
+eval-tune: ## Sweep chunk size / top-k / threshold and write eval/reports/tuning.csv (real API calls)
+	$(PY) -m eval.tune $(ARGS)
 
 up: ## Start the full stack with docker compose
 	@echo "up: not implemented yet (docker compose stack lands in P8)."
