@@ -71,10 +71,17 @@ class Settings(BaseSettings):
     # UI -> API
     api_base_url: str = "http://localhost:8080"
 
+    # HTTP API. API_CORS_ORIGINS is a comma-separated list of allowed browser origins
+    # ("*" allows any origin). ADMIN_API_KEY protects POST /ingest; blank disables it.
+    api_cors_origins: str = "http://localhost:8501"
+    admin_api_key: SecretStr | None = None
+
     # Logging
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
 
-    @field_validator("openai_embedding_base_url", "openai_embedding_api_key", mode="before")
+    @field_validator(
+        "openai_embedding_base_url", "openai_embedding_api_key", "admin_api_key", mode="before"
+    )
     @classmethod
     def _blank_to_none(cls, value: object) -> object:
         if isinstance(value, str) and not value.strip():
@@ -102,6 +109,11 @@ class Settings(BaseSettings):
                 "or export OPENAI_API_KEY in your shell."
             )
         return key
+
+    @property
+    def cors_origins(self) -> list[str]:
+        """API_CORS_ORIGINS split into a list of origins (blank entries removed)."""
+        return [origin.strip() for origin in self.api_cors_origins.split(",") if origin.strip()]
 
     @property
     def embedding_base_url(self) -> str:

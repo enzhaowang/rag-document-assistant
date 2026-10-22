@@ -6,12 +6,15 @@ Usage:
     logger = logging.getLogger(__name__)
     logger.info("ingest finished", extra={"files": 12, "chunks": 240})
 
-Any `extra` fields are emitted as top-level JSON keys next to the standard ones.
+Any `extra` fields are emitted as top-level JSON keys next to the standard ones. While
+`request_id_var` is set (the API sets it per HTTP request), every record also carries a
+`request_id` key, including records logged by library code deeper in the call stack.
 """
 
 import json
 import logging
 import sys
+from contextvars import ContextVar
 from datetime import UTC, datetime
 from typing import Any
 
@@ -23,6 +26,19 @@ _RESERVED_ATTRS = frozenset(
 ) | {"message", "asctime", "taskName"}
 
 _HANDLER_NAME = "app-json-stderr"
+
+# ID of the HTTP request being handled in the current context (None outside requests).
+request_id_var: ContextVar[str | None] = ContextVar("request_id", default=None)
+
+
+class RequestIdFilter(logging.Filter):
+    """Attach the current `request_id_var` value to records that do not have one."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        request_id = request_id_var.get()
+        if request_id is not None and not hasattr(record, "request_id"):
+            record.request_id = request_id
+        return True
 
 
 class JsonFormatter(logging.Formatter):
@@ -59,4 +75,5 @@ def configure_logging(level: str | None = None) -> None:
         handler = logging.StreamHandler(sys.stderr)
         handler.set_name(_HANDLER_NAME)
         handler.setFormatter(JsonFormatter())
+        handler.addFilter(RequestIdFilter())
         root.addHandler(handler)

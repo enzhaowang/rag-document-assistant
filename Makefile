@@ -5,6 +5,8 @@
 
 PYTHON_BIN ?= python3.11
 VENV ?= .venv
+API_HOST ?= 127.0.0.1
+API_PORT ?= 8080
 PY := $(VENV)/bin/python
 UV_COMPILE := uv pip compile pyproject.toml --python-version 3.11 --universal \
 	--annotation-style line --custom-compile-command "make lock" --quiet
@@ -47,8 +49,8 @@ ingest: ## Parse, chunk and index the PDFs in PDF_DIR (pass ARGS=--reset to rebu
 check-retrieval: ## Measure top-k retrieval hit rate on facts from FACTS.md (real API calls)
 	$(PY) scripts/check_retrieval.py
 
-api: ## Run the FastAPI backend on port 8080
-	@echo "api: not implemented yet (FastAPI backend lands in P5)."
+api: ## Run the FastAPI backend (API_HOST/API_PORT, default 127.0.0.1:8080; docs at /docs)
+	$(PY) -m uvicorn app.api.main:app --host $(API_HOST) --port $(API_PORT) --no-access-log
 
 ui: ## Run the Streamlit chat UI
 	@echo "ui: not implemented yet (Streamlit UI lands in P6)."
