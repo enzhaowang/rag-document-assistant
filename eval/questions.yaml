@@ -1,3 +1,275 @@
-# Evaluation questions (filled in during P7).
-# Fields per item: id, question, ground_truth, expected_sources, should_answer
-questions: []
+# Evaluation question set for the Lumora sample knowledge base (data/pdfs/).
+#
+# Every in-scope question is tied to one or more facts in data/pdfs/FACTS.md (`fact_ids`)
+# so it can be checked against the generated PDFs.
+#
+# Fields per item:
+#   id                unique question ID
+#   category          single_fact | cross_page_or_table | confusable | out_of_scope
+#   question          the question as a support agent would ask it
+#   ground_truth      the reference answer (for out-of-scope questions: the expected refusal)
+#   expected_sources  list of {document, pages}; a citation of ANY listed page counts as a hit
+#   should_answer     true if the answer is in the documents, false if the assistant must refuse
+#   fact_ids          fact IDs from data/pdfs/FACTS.md backing the ground truth (optional)
+#   key_facts         short phrases a correct answer must contain, case-insensitive, commas
+#                     in numbers ignored; "a|b" accepts either phrase (optional)
+#
+# Mix: 10 single facts, 3 cross-page or table facts, 2 confusable (T2 vs T3) facts and
+# 5 out-of-scope questions.
+
+questions:
+  # --- Single facts (numbers, steps, error codes) -------------------------------------
+  - id: SF-01
+    category: single_fact
+    question: Who has to approve a refund of $800 on a single order?
+    ground_truth: >-
+      A Team Lead. Refunds from $250.01 to $1,000.00 per order need Team Lead approval
+      through an approval request in OMS, and the Team Lead responds within 4 business hours.
+    expected_sources:
+      - document: SOP - Returns and Refunds.pdf
+        pages: [3]
+    should_answer: true
+    fact_ids: [SOP-RET-04]
+    key_facts: ["Team Lead"]
+
+  - id: SF-02
+    category: single_fact
+    question: What does error code E7 mean on the Thermostat T2?
+    ground_truth: >-
+      E7 on the T2 means low supply voltage: R-C is below 18 VAC. Check the C-wire and the
+      transformer, and install a PEK-1 if there is no C-wire.
+    expected_sources:
+      - document: Product Guide - Lumora Thermostat T2.pdf
+        pages: [6]
+    should_answer: true
+    fact_ids: [PG-T2-05]
+    key_facts: ["18 VAC", "voltage"]
+
+  - id: SF-03
+    category: single_fact
+    question: How do I factory reset a Lumora Thermostat T2?
+    ground_truth: >-
+      Press and hold the control ring for 12 seconds until the display shows RESET, then
+      release. The T2 restarts in setup mode; the reset erases schedules, network credentials
+      and the link to the customer account.
+    expected_sources:
+      - document: Product Guide - Lumora Thermostat T2.pdf
+        pages: [5]
+    should_answer: true
+    fact_ids: [PG-T2-06]
+    key_facts: ["control ring", "12 seconds"]
+
+  - id: SF-04
+    category: single_fact
+    question: How long do customers have to return a product they bought directly from Lumora?
+    ground_truth: >-
+      30 calendar days, counted from the delivery date shown in OMS (not the order date).
+      The return is on time if the RMA is created within the window.
+    expected_sources:
+      - document: SOP - Returns and Refunds.pdf
+        pages: [1]
+    should_answer: true
+    fact_ids: [SOP-RET-01]
+    key_facts: ["30 calendar days|30 days", "delivery"]
+
+  - id: SF-05
+    category: single_fact
+    question: What are the first response and resolution targets for a P1 critical ticket?
+    ground_truth: >-
+      P1 (Critical) tickets need a first response within 15 minutes and have a 4-hour
+      resolution target, with customer updates every 2 hours. P1 covers safety hazards or no
+      heat when the indoor temperature is below 50 °F.
+    expected_sources:
+      - document: SOP - Ticket Escalation.pdf
+        pages: [1]
+    should_answer: true
+    fact_ids: [SOP-ESC-01]
+    key_facts: ["15 minutes", "4 hours|4-hour|four hours"]
+
+  - id: SF-06
+    category: single_fact
+    question: What format do RMA numbers use, and how long is an RMA valid?
+    ground_truth: >-
+      RMA numbers use the format RMA-YYMM-NNNNN (for example RMA-2603-00417). An RMA is
+      valid for 30 days from creation, and the customer must ship the item within 14 days.
+    expected_sources:
+      - document: SOP - RMA Process.pdf
+        pages: [1]
+    should_answer: true
+    fact_ids: [SOP-RMA-01]
+    key_facts: ["RMA-YYMM-NNNNN", "30 days"]
+
+  - id: SF-07
+    category: single_fact
+    question: How many failed sign-in attempts lock a Lumora account, and for how long?
+    ground_truth: >-
+      After 5 failed sign-in attempts the account is locked for 15 minutes. Password reset
+      links are valid for 1 hour, and agents cannot unlock accounts manually.
+    expected_sources:
+      - document: FAQ - App and Account.pdf
+        pages: [1]
+    should_answer: true
+    fact_ids: [FAQ-APP-01]
+    key_facts: ["5 failed|five failed", "15 minutes"]
+
+  - id: SF-08
+    category: single_fact
+    question: How much does a Lumora Plus subscription cost?
+    ground_truth: >-
+      Lumora Plus costs $4.99 per month or $49.00 per year, and one subscription covers all
+      devices in one home.
+    expected_sources:
+      - document: FAQ - Billing and Subscriptions.pdf
+        pages: [3]
+    should_answer: true
+    fact_ids: [FAQ-BIL-01]
+    key_facts: ["$4.99", "$49"]
+
+  - id: SF-09
+    category: single_fact
+    question: Does a T2 customer without a C-wire have to pay for the Power Extender Kit PEK-1?
+    ground_truth: >-
+      The PEK-1 is free for T2 customers who request it within 60 days of delivery; after
+      that it costs $24.99. Only Tier 2 Technical Support may authorize a free PEK-1 outside
+      the 60-day window.
+    expected_sources:
+      - document: Product Guide - Lumora Thermostat T2.pdf
+        pages: [4]
+    should_answer: true
+    fact_ids: [PG-T2-08]
+    key_facts: ["60 days", "$24.99"]
+
+  - id: SF-10
+    category: single_fact
+    question: How quickly must the Safety Officer be notified about a safety case?
+    ground_truth: >-
+      Within 1 hour of the first report, at any time of day, through the safety hotline
+      queue.
+    expected_sources:
+      - document: SOP - Ticket Escalation.pdf
+        pages: [3]
+    should_answer: true
+    fact_ids: [SOP-ESC-05]
+    key_facts: ["1 hour|one hour"]
+
+  # --- Facts that span two pages or live in a table ------------------------------------
+  - id: CP-01
+    category: cross_page_or_table
+    question: In which cases is a C-wire mandatory for the Thermostat T3?
+    ground_truth: >-
+      The T3 usually runs without a C-wire, but a C-wire or the PEK-1 is mandatory for heat
+      pump systems that use auxiliary or emergency heat, any system with more than one
+      cooling stage, and homes where the T3 controls a humidifier or dehumidifier through the
+      ACC terminals. Otherwise the T3 shows error E10 within 24 hours.
+    expected_sources:
+      - document: Product Guide - Lumora Thermostat T3.pdf
+        pages: [3, 4]
+    should_answer: true
+    fact_ids: [PG-T3-05]
+    key_facts:
+      - "heat pump"
+      - "more than one cooling stage|multiple cooling stages|multi-stage cooling"
+      - "humidifier|dehumidifier|ACC"
+
+  - id: CP-02
+    category: cross_page_or_table
+    question: How does the holiday return extension work, and which orders are excluded?
+    ground_truth: >-
+      Orders delivered between November 15 and December 31 can be returned until January 31
+      of the following year (or within the standard 30 days if that is later). The extension
+      does not apply to business accounts or to orders with more than five units of the same
+      product. Agents select the reason modifier HOL in OMS.
+    expected_sources:
+      - document: SOP - Returns and Refunds.pdf
+        pages: [1, 2]
+    should_answer: true
+    fact_ids: [SOP-RET-02]
+    key_facts:
+      - "November 15"
+      - "December 31"
+      - "January 31"
+      - "business account"
+      - "more than five|more than 5"
+
+  - id: CP-03
+    category: cross_page_or_table
+    question: List all refund approval levels by refund amount per order.
+    ground_truth: >-
+      Up to $250.00: the Customer Care agent (Tier 1). $250.01 to $1,000.00: a Team Lead.
+      $1,000.01 to $5,000.00: the Customer Care Manager. Above $5,000.00: both the Customer
+      Care Manager and the Finance Controller.
+    expected_sources:
+      - document: SOP - Returns and Refunds.pdf
+        pages: [3, 4]
+    should_answer: true
+    fact_ids: [SOP-RET-04, SOP-RET-05]
+    key_facts: ["$250", "Team Lead", "$5000", "Customer Care Manager", "Finance Controller"]
+
+  # --- Confusable facts (T2 vs T3) -----------------------------------------------------
+  - id: CF-01
+    category: confusable
+    question: How long is the warranty on the Thermostat T3?
+    ground_truth: >-
+      The Thermostat T3 has a 3-year (36-month) limited warranty from the date of delivery,
+      one year longer than the T2. It can be extended to 4 years when installed by a Lumora
+      Certified Installer, under the conditions of the Limited Warranty Policy.
+    expected_sources:
+      - document: Product Guide - Lumora Thermostat T3.pdf
+        pages: [7]
+      - document: Policy - Limited Warranty.pdf
+        pages: [1]
+    should_answer: true
+    fact_ids: [PG-T3-06]
+    key_facts: ["3-year|3 years|three years|36-month|36 months"]
+
+  - id: CF-02
+    category: confusable
+    question: What does error E4 mean on the Thermostat T3?
+    ground_truth: >-
+      On the T3, E4 means a humidity sensor fault: power-cycle the thermostat and start a
+      warranty claim if it persists. (Network problems are reported as E12 on the T3; E4
+      means a network problem only on the T2.)
+    expected_sources:
+      - document: Product Guide - Lumora Thermostat T3.pdf
+        pages: [5]
+    should_answer: true
+    fact_ids: [PG-T3-03]
+    key_facts: ["humidity"]
+
+  # --- Out of scope: the assistant must refuse ------------------------------------------
+  - id: OOS-01
+    category: out_of_scope
+    question: Who is the CEO of Lumora Home Systems?
+    ground_truth: The documents do not contain this information; the assistant should refuse.
+    expected_sources: []
+    should_answer: false
+
+  - id: OOS-02
+    category: out_of_scope
+    question: How do I make pizza dough at home?
+    ground_truth: The question is unrelated to the documents; the assistant should refuse.
+    expected_sources: []
+    should_answer: false
+
+  - id: OOS-03
+    category: out_of_scope
+    question: Does the Thermostat T3 work with Apple HomeKit?
+    ground_truth: >-
+      The documents do not mention HomeKit compatibility; the assistant should refuse rather
+      than guess.
+    expected_sources: []
+    should_answer: false
+
+  - id: OOS-04
+    category: out_of_scope
+    question: What was Lumora's total revenue last year?
+    ground_truth: The documents do not contain financial results; the assistant should refuse.
+    expected_sources: []
+    should_answer: false
+
+  - id: OOS-05
+    category: out_of_scope
+    question: Write a Python function that sorts a list of numbers.
+    ground_truth: The request is out of scope for a support assistant; it should refuse.
+    expected_sources: []
+    should_answer: false
