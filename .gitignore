@@ -218,3 +218,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local AI workflow files (not committed)
+.claude/
+docs/ROADMAP.md
+docs/status.json
+docs/progress/
