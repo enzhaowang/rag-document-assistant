@@ -221,6 +221,9 @@ __marimo__/
 
 # Local AI workflow files (not committed)
 .claude/
+.agents/
+.codex/
+AGENTS.md
 docs/ROADMAP.md
 docs/status.json
 docs/progress/
