@@ -3,7 +3,8 @@
 `ChatRequest` / `ChatResponse` implement the `/chat` contract:
 
 - request: ``{"question": str (1-2000 chars), "history": [{"role", "content"}]}``;
-  `history` is optional and only its last `HISTORY_MAX_TURNS` turns are kept;
+  `history` is optional and only its last RAG_HISTORY_MAX_TURNS turns (Settings, default
+  6) are used;
 - response: ``{"answer", "is_answerable", "sources": [...], "model", "latency_ms"}``.
 
 These models are deliberately separate from the chain's `ChatResult`, which carries extra
@@ -19,9 +20,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.rag.schemas import ChatResult
 
 QUESTION_MAX_CHARS = 2000
-# Contract: the server keeps at most the last 6 turns (user + assistant message each).
-HISTORY_MAX_TURNS = 6
-HISTORY_KEPT_MESSAGES = 2 * HISTORY_MAX_TURNS
+# How many recent turns are kept is configured by Settings.rag_history_max_turns
+# (RAG_HISTORY_MAX_TURNS) and applied by `recent_history`, so the API and the chain agree.
 # Hard limits that reject abusive payloads instead of silently truncating them.
 HISTORY_MAX_MESSAGES = 50
 HISTORY_MESSAGE_MAX_CHARS = 8000
@@ -64,8 +64,9 @@ class ChatRequest(BaseModel):
         default_factory=list,
         max_length=HISTORY_MAX_MESSAGES,
         description=(
-            "Previous messages, oldest first. Optional; only the last "
-            f"{HISTORY_MAX_TURNS} turns ({HISTORY_KEPT_MESSAGES} messages) are used."
+            "Previous messages, oldest first. Optional; only the most recent "
+            "RAG_HISTORY_MAX_TURNS turns (server setting, default 6 turns = 12 messages) "
+            "are used."
         ),
     )
 
@@ -77,10 +78,12 @@ class ChatRequest(BaseModel):
             raise ValueError("question must not be blank")
         return stripped
 
-    @field_validator("history")
-    @classmethod
-    def _keep_recent_turns(cls, value: list[ChatMessage]) -> list[ChatMessage]:
-        return value[-HISTORY_KEPT_MESSAGES:]
+
+def recent_history(messages: list[ChatMessage], max_turns: int) -> list[ChatMessage]:
+    """Keep only the last `max_turns` turns (one user + one assistant message each)."""
+    if max_turns <= 0:
+        return []
+    return messages[-2 * max_turns :]
 
 
 class SourceResponse(BaseModel):

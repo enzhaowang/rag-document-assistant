@@ -31,6 +31,17 @@ logger = logging.getLogger(__name__)
 _READ_PAGE_SIZE = 1000
 
 
+class BackendUnavailableError(RuntimeError):
+    """Raised when the vector store (Chroma) cannot be reached or its client cannot be created.
+
+    chromadb does not raise a consistent exception type here: `chromadb.HttpClient`
+    contacts the server while it is being constructed and turns transport failures into a
+    plain `ValueError` ("Could not connect to a Chroma server..." or "Server disconnected
+    without sending a response."). Wrapping every client-creation failure in this type lets
+    the API map it to a 503 without treating unrelated `ValueError`s as outages.
+    """
+
+
 class RagService:
     """Lazily created, cached clients plus the operations the API exposes."""
 
@@ -49,7 +60,12 @@ class RagService:
     def client(self) -> chromadb.ClientAPI:
         with self._init_lock:
             if self._client is None:
-                self._client = get_chroma_client(self.settings)
+                try:
+                    self._client = get_chroma_client(self.settings)
+                except Exception as exc:
+                    raise BackendUnavailableError(
+                        f"could not create the Chroma client ({type(exc).__name__}: {exc})"
+                    ) from exc
             return self._client
 
     def vectorstore(self) -> Chroma:
@@ -150,4 +166,6 @@ class RagService:
                 },
             )
         finally:
+            # The set of documents may have changed even if the chunk total did not.
+            self._document_count_cache = None
             self._ingest_lock.release()

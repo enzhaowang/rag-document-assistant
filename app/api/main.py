@@ -41,8 +41,9 @@ from app.api.schemas import (
     ErrorResponse,
     HealthResponse,
     IngestAccepted,
+    recent_history,
 )
-from app.api.service import RagService
+from app.api.service import BackendUnavailableError, RagService
 from app.config import MissingOpenAIKeyError, Settings, get_settings
 from app.logging_config import configure_logging, request_id_var
 from app.rag.schemas import HistoryMessage
@@ -66,6 +67,9 @@ MSG_LLM_MISCONFIGURED = (
 MSG_LLM_ERROR = "The language model service returned an error. Please try again later."
 MSG_BACKEND_UNAVAILABLE = (
     "A backend service (document index) is temporarily unavailable. Please try again shortly."
+)
+MSG_BACKEND_MISCONFIGURED = (
+    "The document index is not configured correctly. Please contact the administrator."
 )
 MSG_INTERNAL = "An unexpected error occurred. Please try again later."
 
@@ -138,11 +142,24 @@ async def _backend_unavailable_handler(request: Request, exc: Exception) -> JSON
     return _error(request, status.HTTP_503_SERVICE_UNAVAILABLE, MSG_BACKEND_UNAVAILABLE)
 
 
+async def _backend_misconfigured_handler(request: Request, exc: Exception) -> JSONResponse:
+    # A permanent problem (e.g. the collection uses the wrong distance metric and must be
+    # rebuilt with `--reset`), so the message must not suggest that retrying helps.
+    logger.error(
+        "vector store is misconfigured",
+        extra={"error_type": type(exc).__name__, "error": str(exc)},
+    )
+    return _error(request, status.HTTP_503_SERVICE_UNAVAILABLE, MSG_BACKEND_MISCONFIGURED)
+
+
 def _register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(openai.APIError, _openai_error_handler)
     app.add_exception_handler(MissingOpenAIKeyError, _missing_key_handler)
-    app.add_exception_handler(VectorStoreConfigError, _backend_unavailable_handler)
-    # Chroma's HTTP client raises httpx transport errors when the server is unreachable.
+    app.add_exception_handler(VectorStoreConfigError, _backend_misconfigured_handler)
+    # Chroma unreachable while creating its client: chromadb raises a plain ValueError,
+    # which RagService wraps in BackendUnavailableError.
+    app.add_exception_handler(BackendUnavailableError, _backend_unavailable_handler)
+    # Chroma unreachable after the client exists: requests fail with httpx transport errors.
     app.add_exception_handler(httpx.TransportError, _backend_unavailable_handler)
 
 
@@ -229,7 +246,8 @@ def create_app(settings: Settings | None = None, service: RagService | None = No
     )
     def chat(body: ChatRequest, service: ServiceDep) -> ChatResponse:
         # Sync endpoint: FastAPI runs it in the thread pool (the chain is blocking I/O).
-        history = [HistoryMessage(role=m.role, content=m.content) for m in body.history]
+        recent = recent_history(body.history, service.settings.rag_history_max_turns)
+        history = [HistoryMessage(role=m.role, content=m.content) for m in recent]
         logger.info(
             "chat request",
             extra={"question_chars": len(body.question), "history_messages": len(history)},

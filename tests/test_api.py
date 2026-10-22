@@ -19,6 +19,7 @@ import httpx2
 import openai
 import pytest
 from fastapi.testclient import TestClient
+from pydantic import SecretStr
 
 from app.api import main as main_module
 from app.api.main import (
@@ -28,13 +29,12 @@ from app.api.main import (
     create_app,
     get_service,
 )
-from app.api.schemas import HISTORY_KEPT_MESSAGES
-from app.api.service import RagService
+from app.api.service import BackendUnavailableError, RagService
 from app.config import MissingOpenAIKeyError, Settings
 from app.logging_config import JsonFormatter, RequestIdFilter, request_id_var
 from app.rag.prompts import REFUSAL_MESSAGE
 from app.rag.schemas import ChatResult, HistoryMessage, RefusalReason, Source
-from app.retrieval.vectorstore import get_vectorstore
+from app.retrieval.vectorstore import VectorStoreConfigError, get_vectorstore
 from tests.test_retrieval import KeywordEmbeddings, _paragraph, write_pdf
 
 CONTRACT_RESPONSE_KEYS = {"answer", "is_answerable", "sources", "model", "latency_ms"}
@@ -204,9 +204,27 @@ def test_chat_keeps_only_the_last_six_turns(client: TestClient, service: FakeSer
 
     assert response.status_code == 200
     _, passed = service.calls[0]
-    assert len(passed) == HISTORY_KEPT_MESSAGES == 12
+    assert len(passed) == 12
     assert passed[0].content == "message 8"
     assert passed[-1].content == "message 19"
+
+
+@pytest.mark.parametrize(("max_turns", "expected"), [(2, 4), (0, 0)])
+def test_chat_history_limit_follows_settings(
+    settings: Settings, max_turns: int, expected: int
+) -> None:
+    configured = settings.model_copy(update={"rag_history_max_turns": max_turns})
+    service = FakeService(configured)
+    app = create_app(configured, service=service)  # type: ignore[arg-type]
+    history = [{"role": "user", "content": f"message {i}"} for i in range(10)]
+    with TestClient(app) as test_client:
+        response = test_client.post("/chat", json={"question": "next?", "history": history})
+
+    assert response.status_code == 200
+    _, passed = service.calls[0]
+    assert len(passed) == expected
+    if expected:
+        assert passed[-1].content == "message 9"
 
 
 @pytest.mark.parametrize(
@@ -281,6 +299,16 @@ def test_chat_rejects_non_json_body(client: TestClient) -> None:
         (_openai_status_error(openai.BadRequestError, 400), 502, main_module.MSG_LLM_ERROR),
         (MissingOpenAIKeyError("OPENAI_API_KEY is not set"), 503, MSG_LLM_MISCONFIGURED),
         (httpx.ConnectError("connection refused"), 503, main_module.MSG_BACKEND_UNAVAILABLE),
+        (
+            BackendUnavailableError("could not create the Chroma client"),
+            503,
+            main_module.MSG_BACKEND_UNAVAILABLE,
+        ),
+        (
+            VectorStoreConfigError("collection uses l2 distance"),
+            503,
+            main_module.MSG_BACKEND_MISCONFIGURED,
+        ),
         (RuntimeError("boom: internal details"), 500, MSG_INTERNAL),
     ],
     ids=[
@@ -292,6 +320,8 @@ def test_chat_rejects_non_json_body(client: TestClient) -> None:
         "llm-bad-request",
         "missing-key",
         "chroma-unreachable",
+        "chroma-client-creation-failed",
+        "chroma-misconfigured",
         "unexpected",
     ],
 )
@@ -528,17 +558,50 @@ def test_service_ingest_failure_releases_the_slot(
     assert real_service.try_start_ingest()
 
 
+def _chroma_server_unreachable(_: Settings) -> Any:
+    # What chromadb.HttpClient really raises when the server is down: a plain ValueError
+    # (it converts the underlying httpx error while constructing the client).
+    raise ValueError("Server disconnected without sending a response.")
+
+
 def test_service_warm_up_failure_does_not_raise(
     settings: Settings, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    def unreachable(_: Settings) -> Any:
-        raise ConnectionError("chroma down")
-
-    monkeypatch.setattr("app.api.service.get_chroma_client", unreachable)
+    monkeypatch.setattr("app.api.service.get_chroma_client", _chroma_server_unreachable)
     service = RagService(settings)
     service.warm_up()  # logged, retried lazily later
-    with pytest.raises(ConnectionError):
+    with pytest.raises(BackendUnavailableError) as excinfo:
         service.client()
+    assert isinstance(excinfo.value.__cause__, ValueError)
+
+
+def test_chat_returns_503_when_chroma_client_cannot_be_created(
+    settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("app.api.service.get_chroma_client", _chroma_server_unreachable)
+    # A (fake) key so the chat model can be built; it is never called.
+    configured = settings.model_copy(update={"openai_api_key": SecretStr("sk-test")})
+    app = create_app(configured)  # real RagService, lifespan warm-up fails and is logged
+    with TestClient(app) as test_client:
+        response = test_client.post("/chat", json={"question": "How long is the T2 warranty?"})
+        health = test_client.get("/health")
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "detail": main_module.MSG_BACKEND_UNAVAILABLE,
+        "request_id": response.headers["X-Request-ID"],
+    }
+    assert "Traceback" not in response.text
+    assert "Server disconnected" not in response.text
+    assert health.status_code == 503
+    assert health.json()["status"] == "unavailable"
+
+
+def test_service_ingest_resets_document_count_cache(real_service: RagService) -> None:
+    real_service._document_count_cache = (5, 3)
+    assert real_service.try_start_ingest()
+    real_service.run_ingest()  # PDF_DIR is missing -> ingestion fails, cache still reset
+    assert real_service._document_count_cache is None
 
 
 def test_service_initializes_clients_once(
