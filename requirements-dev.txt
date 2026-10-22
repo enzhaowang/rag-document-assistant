@@ -13,7 +13,7 @@ attrs==26.1.0             # via aiohttp, jsonschema, referencing
 bcrypt==5.0.0             # via chromadb
 build==1.6.1              # via chromadb
 certifi==2026.10.19       # via httpcore, httpx, kubernetes, langchain-openai, requests
-charset-normalizer==3.5.2  # via requests
+charset-normalizer==3.5.2  # via reportlab, requests
 chromadb==1.5.9           # via langchain-chroma, rag-document-assistant (pyproject.toml)
 click==8.5.0              # via huggingface-hub, instructor, streamlit, uvicorn
 colorama==0.4.6 ; os_name == 'nt' or sys_platform == 'win32'  # via build, pytest, tqdm, typer
@@ -92,7 +92,7 @@ ormsgpack==1.13.0         # via langgraph-checkpoint
 overrides==7.7.0          # via chromadb
 packaging==26.3           # via altair, build, datasets, huggingface-hub, langchain-core, langsmith, onnxruntime, pytest, streamlit
 pandas==3.0.6             # via datasets, streamlit, rag-document-assistant (pyproject.toml)
-pillow==13.0.0            # via ragas, streamlit
+pillow==13.0.0            # via ragas, reportlab, streamlit
 pluggy==1.7.0             # via pytest
 propcache==0.5.4          # via aiohttp, yarl
 protobuf==7.36.2          # via googleapis-common-protos, onnxruntime, opentelemetry-proto, streamlit
@@ -117,6 +117,7 @@ pyyaml==6.0.3             # via chromadb, datasets, huggingface-hub, kubernetes,
 ragas==0.4.3              # via rag-document-assistant (pyproject.toml)
 referencing==0.37.0       # via jsonschema, jsonschema-specifications
 regex==2026.9.29          # via instructor, tiktoken
+reportlab==4.5.1          # via rag-document-assistant (pyproject.toml)
 requests==2.34.2          # via instructor, kubernetes, langchain-classic, langchain-community, langsmith, requests-oauthlib, requests-toolbelt, streamlit, tiktoken
 requests-oauthlib==2.0.0  # via kubernetes
 requests-toolbelt==1.0.0  # via langsmith
