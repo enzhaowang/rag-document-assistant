@@ -13,10 +13,11 @@ UV_COMPILE := uv pip compile pyproject.toml --python-version 3.11 --universal \
 	--annotation-style line --custom-compile-command "make lock" --quiet
 
 .DEFAULT_GOAL := help
-.PHONY: help install lock lint format test check-llm check-retrieval sample-pdfs ingest api ui eval eval-tune up down
+.PHONY: help install lock lint format test check-llm check-retrieval sample-pdfs ingest api ui eval eval-tune \
+	up down logs docker-ingest
 
 help: ## Show available targets
-	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  %-10s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  %-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 install: ## Create .venv and install pinned runtime + dev dependencies
 	@test -x $(PY) || $(PYTHON_BIN) -m venv $(VENV)
@@ -63,8 +64,14 @@ eval: ## Run the evaluation (RAGAS + custom metrics) and write eval/reports/ (re
 eval-tune: ## Sweep chunk size / top-k / threshold and write eval/reports/tuning.csv (real API calls)
 	$(PY) -m eval.tune $(ARGS)
 
-up: ## Start the full stack with docker compose
-	@echo "up: not implemented yet (docker compose stack lands in P8)."
+up: ## Build and start the full stack (chroma + api + ui) with docker compose
+	docker compose up -d --build
 
-down: ## Stop the docker compose stack
-	@echo "down: not implemented yet (docker compose stack lands in P8)."
+down: ## Stop the docker compose stack (indexed data is kept in the chroma_data volume)
+	docker compose down
+
+logs: ## Follow the logs of the docker compose stack
+	docker compose logs -f
+
+docker-ingest: ## Index data/pdfs into the dockerized Chroma (pass ARGS=--reset to rebuild)
+	docker compose run --rm api python -m app.ingestion.pipeline $(ARGS)

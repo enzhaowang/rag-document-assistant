@@ -1,2 +1,78 @@
-# Services (chroma, api, ui) are defined in P8.
-services: {}
+# Full stack: Chroma vector database + FastAPI backend + Streamlit UI.
+#
+#   cp .env.example .env            # then set OPENAI_API_KEY
+#   docker compose up -d --build    # or: make up
+#   docker compose run --rm api python -m app.ingestion.pipeline   # or: make docker-ingest
+#   open http://localhost:8501
+#
+# Indexed data lives in the named volume "chroma_data" and survives `docker compose down`
+# (only `docker compose down -v` deletes it).
+
+name: rag-document-assistant
+
+services:
+  chroma:
+    # Server version pinned to the chromadb client version in requirements.txt.
+    image: chromadb/chroma:1.5.9
+    restart: unless-stopped
+    volumes:
+      - chroma_data:/data
+    environment:
+      ANONYMIZED_TELEMETRY: "False"
+    healthcheck:
+      # The image has no curl/wget; use bash's /dev/tcp to call the heartbeat endpoint.
+      test:
+        - CMD
+        - bash
+        - -c
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/8000
+          && printf 'GET /api/v2/heartbeat HTTP/1.0\r\nHost: localhost\r\n\r\n' >&3
+          && head -n 1 <&3 | grep -q ' 200 '
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    image: rag-document-assistant-api:latest
+    restart: unless-stopped
+    # OPENAI_API_KEY, model names and tuning parameters come from .env; the values in
+    # `environment` below override .env so the container always uses the Chroma server.
+    env_file: .env
+    environment:
+      CHROMA_MODE: http
+      CHROMA_HOST: chroma
+      CHROMA_PORT: "8000"
+      PDF_DIR: /app/data/pdfs
+    volumes:
+      # Drop your own PDFs into ./data/pdfs and re-run the ingestion command.
+      - ./data/pdfs:/app/data/pdfs:ro
+    ports:
+      - "${API_PORT:-8080}:8080"
+    depends_on:
+      chroma:
+        condition: service_healthy
+
+  ui:
+    build:
+      context: .
+      dockerfile: docker/ui.Dockerfile
+    image: rag-document-assistant-ui:latest
+    restart: unless-stopped
+    # The UI never sees the OpenAI key: it only needs the API URL and its own settings.
+    environment:
+      API_BASE_URL: http://api:8080
+      UI_REQUEST_TIMEOUT_SECONDS: ${UI_REQUEST_TIMEOUT_SECONDS:-120}
+      RAG_HISTORY_MAX_TURNS: ${RAG_HISTORY_MAX_TURNS:-6}
+    ports:
+      - "${UI_PORT:-8501}:8501"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  chroma_data:
