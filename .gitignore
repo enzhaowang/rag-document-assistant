@@ -224,6 +224,7 @@ __marimo__/
 .agents/
 .codex/
 AGENTS.md
+CLAUDE.md
 docs/ROADMAP.md
 docs/status.json
 docs/progress/
