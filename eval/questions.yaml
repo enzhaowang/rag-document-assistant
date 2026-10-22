@@ -1,0 +1,3 @@
+# Evaluation questions (filled in during P7).
+# Fields per item: id, question, ground_truth, expected_sources, should_answer
+questions: []
