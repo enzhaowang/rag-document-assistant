@@ -10,7 +10,7 @@ UV_COMPILE := uv pip compile pyproject.toml --python-version 3.11 --universal \
 	--annotation-style line --custom-compile-command "make lock" --quiet
 
 .DEFAULT_GOAL := help
-.PHONY: help install lock lint format test check-llm sample-pdfs ingest api ui eval up down
+.PHONY: help install lock lint format test check-llm check-retrieval sample-pdfs ingest api ui eval up down
 
 help: ## Show available targets
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  %-10s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -41,8 +41,11 @@ check-llm: ## Smoke-check the configured LLM/embedding endpoint (real API calls)
 sample-pdfs: ## Regenerate the fictional sample PDFs and FACTS.md in PDF_DIR
 	$(PY) scripts/generate_sample_pdfs.py
 
-ingest: ## Parse, chunk and index the PDFs in PDF_DIR
-	@echo "ingest: not implemented yet (ingestion pipeline lands in P2/P3)."
+ingest: ## Parse, chunk and index the PDFs in PDF_DIR (pass ARGS=--reset to rebuild)
+	$(PY) -m app.ingestion.pipeline $(ARGS)
+
+check-retrieval: ## Measure top-k retrieval hit rate on facts from FACTS.md (real API calls)
+	$(PY) scripts/check_retrieval.py
 
 api: ## Run the FastAPI backend on port 8080
 	@echo "api: not implemented yet (FastAPI backend lands in P5)."
