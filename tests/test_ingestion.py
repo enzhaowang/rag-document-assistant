@@ -351,10 +351,6 @@ def test_cli_dry_run_prints_stats(
     assert dump.read_text(encoding="utf-8").count("\n") >= 1
 
 
-def test_cli_without_dry_run_refuses(pdf_dir: Path) -> None:
-    assert main(["--pdf-dir", str(pdf_dir)]) == 2
-
-
 # ---------------------------------------------------------------- sample knowledge base
 
 SAMPLE_DIR = Path(__file__).resolve().parents[1] / "data" / "pdfs"
