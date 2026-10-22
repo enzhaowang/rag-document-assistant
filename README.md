@@ -22,6 +22,16 @@ FAQs and a warranty policy, about 63 pages in total.
 - **One command to run.** `docker compose up` starts the vector database, the API and the
   chat UI; data persists across restarts.
 
+## Screenshots
+
+| Citations, expanded | Declining an out-of-scope question |
+|---|---|
+| ![Answer to "Who must approve a refund of $800?" with both cited passages expanded, showing document, page, section, relevance score and the quoted text](docs/images/citations.png) | ![The assistant declines "Who is the CEO of Lumora?" because the documents do not cover it](docs/images/refusal.png) |
+
+The evaluation report (excerpt of [eval/reports/summary.md](eval/reports/summary.md)):
+
+![Evaluation summary: bottom line and scorecard with faithfulness 0.94, citation hit rate 100%, out-of-scope refusal 100%, false refusals 0%](docs/images/eval-report.png)
+
 ## Contents
 
 - [Architecture](#architecture)
@@ -36,6 +46,7 @@ FAQs and a warranty policy, about 63 pages in total.
 - [Switching the vector database](#switching-the-vector-database)
 - [Cost estimate](#cost-estimate)
 - [Project layout](#project-layout)
+- [Limitations and next steps](#limitations-and-next-steps)
 
 ## Architecture
 
@@ -69,7 +80,7 @@ Services in `docker-compose.yml`:
 | Service | Image | Port | Purpose |
 |---|---|---|---|
 | `chroma` | `chromadb/chroma:1.5.9` | internal only | Vector database; data in the `chroma_data` volume |
-| `api` | built from `docker/api.Dockerfile` | 8080 | FastAPI backend (`/chat`, `/health`, `/ingest`, `/docs`); also runs ingestion |
+| `api` | built from `docker/api.Dockerfile` | 8080 (localhost only) | FastAPI backend (`/chat`, `/health`, `/ingest`, `/docs`); also runs ingestion |
 | `ui` | built from `docker/ui.Dockerfile` | 8501 | Streamlit chat UI; talks to the API over HTTP |
 
 ## Quick start (Docker)
@@ -87,6 +98,11 @@ cd rag-document-assistant
 cp .env.example .env
 # edit .env and set OPENAI_API_KEY=sk-...
 ```
+
+Using OpenRouter or another OpenAI-compatible provider? Also set `OPENAI_BASE_URL` and the
+model names in `.env` (see [Configuration](#configuration)); for OpenRouter that is
+`OPENAI_BASE_URL=https://openrouter.ai/api/v1`, `OPENAI_CHAT_MODEL=openai/gpt-4o-mini` and
+`OPENAI_EMBEDDING_MODEL=openai/text-embedding-3-small`.
 
 **2. Start the stack** (the first build takes a few minutes):
 
@@ -360,8 +376,10 @@ assistant.example.com {
 
 Recommendations for a public deployment:
 
-- Only expose the UI (through the proxy). Keep the API private by publishing it on
-  localhost only: in `docker-compose.yml` change the API port to `"127.0.0.1:8080:8080"`.
+- Only expose the UI (through the proxy). The API is already published on `127.0.0.1`
+  only (`/chat` has no authentication and spends API credits); the UI reaches it over the
+  internal compose network. To call the API from other machines, put it behind the proxy
+  with authentication rather than changing the port binding.
 - Protect the UI with a password (basic auth above) or your SSO, and set a monthly usage
   limit on the OpenAI key.
 - All services use `restart: unless-stopped`, so they come back after a reboot; the index
@@ -438,3 +456,36 @@ tests/                   unit tests (pytest; OpenAI is mocked)
 docker/                  api.Dockerfile, ui.Dockerfile
 docker-compose.yml       chroma + api + ui
 ```
+
+## Limitations and next steps
+
+Known limitations of this demo, and what a production rollout would add:
+
+- **Tables that span two pages.** Chunks never cross a page boundary, so a table that
+  continues on the next page is split in two. In the evaluation this occasionally drops a
+  row from an answer (CP-03) or cites the continuation page instead of the first page.
+  Next step: table-aware chunking that merges a table across pages.
+- **Scanned PDFs.** Pages without a text layer are skipped and reported; scanned documents
+  need OCR (e.g. Tesseract or a cloud OCR service) before ingestion.
+- **Re-indexing after a settings change.** Incremental ingestion compares file hashes and
+  chunk IDs, so after changing the chunk size, the overlap or the embedding model run the
+  ingestion with `--reset`.
+- **Short chunks near the threshold.** Some correct passages score just above the 0.35
+  relevance threshold (about 0.36-0.41). Raising the threshold for a new document set should
+  always be validated with `make eval`, otherwise in-scope questions start being declined.
+- **Evaluation judge.** RAGAS faithfulness is judged by the same small model by default
+  (`gpt-4o-mini`) and occasionally flags a correct answer (SF-09). Use a stronger judge with
+  `python -m eval.run_eval --judge-model <model>` for sign-off runs.
+- **Authentication.** The UI and `/chat` have no user accounts. Public deployments should
+  sit behind a password or SSO proxy (see [Deployment](#deployment)) with a spending limit on
+  the API key; per-user rate limiting is a natural next step.
+- **Image size.** The API image (about 1.2 GB) includes the full `chromadb` package, which
+  also supports the local mode. A slimmer image could use `chromadb-client` for the Docker
+  setup.
+- **Hyphenated line breaks.** A compound word broken at a line end with its own hyphen
+  (`self-` / `service`) is joined as `selfservice`; this does not occur in the sample
+  documents.
+
+Possible extensions: streaming answers, hybrid search (BM25 + vectors) and a reranker for
+large document sets, per-document access control, feedback buttons in the UI, and a
+scheduled ingestion job that watches a shared drive or S3 bucket.

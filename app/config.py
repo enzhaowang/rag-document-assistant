@@ -90,6 +90,14 @@ class Settings(BaseSettings):
             return None
         return value
 
+    @field_validator("log_level", mode="before")
+    @classmethod
+    def _upper_log_level(cls, value: object) -> object:
+        # Accept LOG_LEVEL=info as well as LOG_LEVEL=INFO.
+        if isinstance(value, str):
+            return value.strip().upper()
+        return value
+
     @model_validator(mode="after")
     def _check_chunk_overlap(self) -> "Settings":
         if self.chunk_overlap_tokens >= self.chunk_size_tokens:

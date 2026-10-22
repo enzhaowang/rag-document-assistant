@@ -52,7 +52,9 @@ services:
       # Drop your own PDFs into ./data/pdfs and re-run the ingestion command.
       - ./data/pdfs:/app/data/pdfs:ro
     ports:
-      - "${API_PORT:-8080}:8080"
+      # Published on localhost only: /chat has no authentication and spends API credits.
+      # The UI reaches the API over the internal compose network.
+      - "127.0.0.1:${API_PORT:-8080}:8080"
     depends_on:
       chroma:
         condition: service_healthy

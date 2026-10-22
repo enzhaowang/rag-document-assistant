@@ -110,7 +110,7 @@ def _rewrite_question(question: str, history: Sequence[HistoryMessage], llm: Bas
         return question
     messages = REWRITE_PROMPT.format_messages(history=_format_history(history), question=question)
     reply = llm.invoke(messages)
-    rewritten = _WHITESPACE.sub(" ", str(reply.content)).strip()
+    rewritten = _WHITESPACE.sub(" ", reply.text).strip()
     if not rewritten:
         logger.warning("question rewrite returned empty output; using the original question")
         return question

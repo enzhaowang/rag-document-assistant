@@ -24,6 +24,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH="/opt/venv/bin:$PATH" \
     STREAMLIT_SERVER_HEADLESS=true \
     STREAMLIT_BROWSER_GATHER_USAGE_STATS=false \
+    STREAMLIT_CLIENT_TOOLBAR_MODE=viewer \
     API_BASE_URL=http://api:8080
 
 RUN groupadd --system --gid 10001 app \
