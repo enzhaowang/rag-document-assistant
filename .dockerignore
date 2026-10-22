@@ -1,0 +1,16 @@
+# Allow-list: only what the images need is sent to the Docker build context.
+# Secrets (.env), the local vector store (.chroma), virtualenvs, git metadata, tests,
+# evaluation reports and the sample PDFs (mounted at runtime) never enter an image.
+*
+!app/
+!ui/
+!scripts/check_llm_endpoint.py
+!requirements.txt
+
+# Re-exclude anything unwanted inside the allowed directories.
+**/__pycache__
+**/*.py[cod]
+**/.env
+**/.env.*
+**/.chroma
+**/.DS_Store
