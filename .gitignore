@@ -227,3 +227,6 @@ docs/progress/
 
 # Local vector store data
 .chroma/
+
+# macOS
+.DS_Store
