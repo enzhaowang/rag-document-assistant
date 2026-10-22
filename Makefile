@@ -56,7 +56,7 @@ api: ## Run the FastAPI backend (API_HOST/API_PORT, default 127.0.0.1:8080; docs
 
 ui: ## Run the Streamlit chat UI (UI_PORT, default 8501; talks to the API at API_BASE_URL)
 	$(PY) -m streamlit run ui/streamlit_app.py --server.port $(UI_PORT) \
-		--server.headless true --browser.gatherUsageStats false
+		--server.headless true --browser.gatherUsageStats false --client.toolbarMode viewer
 
 eval: ## Run the evaluation (RAGAS + custom metrics) and write eval/reports/ (real API calls)
 	$(PY) -m eval.run_eval $(ARGS)

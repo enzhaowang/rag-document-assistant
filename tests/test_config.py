@@ -33,6 +33,15 @@ def test_settings_load_without_env_file_or_api_key(clean_env: Path) -> None:
     assert settings.log_level == "INFO"
 
 
+@pytest.mark.parametrize("value", ["debug", " Warning "])
+def test_log_level_is_case_insensitive(
+    clean_env: Path, monkeypatch: pytest.MonkeyPatch, value: str
+) -> None:
+    monkeypatch.setenv("LOG_LEVEL", value)
+
+    assert Settings().log_level == value.strip().upper()
+
+
 def test_get_settings_is_cached(clean_env: Path) -> None:
     assert get_settings() is get_settings()
 

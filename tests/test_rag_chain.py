@@ -46,7 +46,9 @@ class FakeLLM:
     """Stands in for ChatOpenAI: records prompts and returns canned outputs."""
 
     def __init__(
-        self, answer: LLMAnswer | dict[str, Any] | None = None, rewrite: str = "rewritten"
+        self,
+        answer: LLMAnswer | dict[str, Any] | None = None,
+        rewrite: str | list[Any] = "rewritten",
     ) -> None:
         self.answer = answer
         self.rewrite = rewrite
@@ -411,6 +413,19 @@ def test_empty_rewrite_falls_back_to_original_question(
     )
 
     assert queries == ["And the T3?"]
+
+
+def test_rewrite_with_content_blocks_uses_their_text(
+    settings: Settings, fake_retrieve: Any
+) -> None:
+    queries = fake_retrieve([])
+    llm = FakeLLM(rewrite=[{"type": "text", "text": "What is the T3 warranty?"}])
+
+    answer_question(
+        "And the T3?", [{"role": "user", "content": "T2 warranty?"}], settings=settings, llm=llm
+    )
+
+    assert queries == ["What is the T3 warranty?"]
 
 
 def test_history_is_truncated_to_last_turns(settings: Settings, fake_retrieve: Any) -> None:
