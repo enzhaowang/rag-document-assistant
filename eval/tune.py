@@ -134,6 +134,18 @@ def merge_runs(existing: pd.DataFrame, new: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def write_rows(
+    out: Path, rows: Sequence[Mapping[str, object]], existing: pd.DataFrame | None = None
+) -> pd.DataFrame:
+    """Write the sweep rows to `out`, merged into `existing` rows when appending."""
+    frame = pd.DataFrame(list(rows), columns=list(TUNING_COLUMNS))
+    if existing is not None:
+        frame = merge_runs(existing, frame)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    frame.to_csv(out, index=False)
+    return frame
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     add_config_arguments(parser)
@@ -165,7 +177,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     questions = load_questions(args.questions)
     grid = build_grid(args.chunk_sizes, args.top_ks, args.thresholds)
 
-    rows = []
+    existing = pd.read_csv(args.out) if args.append and args.out.is_file() else None
+    rows: list[dict[str, object]] = []
     stores: dict[tuple[int, int], object] = {}
     for i, config in enumerate(grid, start=1):
         settings = settings_for(base, config)
@@ -175,6 +188,11 @@ def main(argv: Sequence[str] | None = None) -> int:
                 stores[key] = prepare_vectorstore(settings, base)
         except IndexNotReadyError as exc:
             print(f"Error: {exc}", file=sys.stderr)
+            if rows:
+                print(
+                    f"{len(rows)} completed configuration(s) were kept in {args.out}.",
+                    file=sys.stderr,
+                )
             return 2
         run_metrics = []
         run_failures = []
@@ -203,12 +221,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             + (f"  failed: {summary['failed_questions']}" if summary["failed_questions"] else ""),
             flush=True,
         )
+        # Save after every configuration so a later failure does not lose paid-for results.
+        write_rows(args.out, rows, existing)
 
-    frame = pd.DataFrame(rows, columns=list(TUNING_COLUMNS))
-    if args.append and args.out.is_file():
-        frame = merge_runs(pd.read_csv(args.out), frame)
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    frame.to_csv(args.out, index=False)
     print(f"\nwrote {args.out}")
     return 0
 

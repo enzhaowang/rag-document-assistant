@@ -1,6 +1,6 @@
 # Evaluation Summary: Lumora Document Assistant
 
-_Generated 2026-10-22T17:39:23+08:00 by `make eval` - 20 questions - chat model `openai/gpt-4o-mini` - chunk 500/80 tokens, top-k 6, threshold 0.35._
+_Generated 2026-10-22T18:02:32+08:00 by `make eval` - 20 questions - chat model `openai/gpt-4o-mini` - chunk 500/80 tokens, top-k 6, threshold 0.35._
 
 ## Bottom line
 
@@ -8,25 +8,26 @@ _Generated 2026-10-22T17:39:23+08:00 by `make eval` - 20 questions - chat model 
 - Of the 15 questions whose answer is in the documents, the assistant answered 15 and cited the correct document and page for 15 (100%).
 - It declined 5 of 5 questions that the documents do not cover (for example "Who is the CEO of Lumora Home Systems?"): it never invented an answer.
 - 14 of 15 answers contain every key fact of the reference answer; incomplete: CP-03.
-- On average 100% of the statements in an answer are directly supported by the quoted source passages (RAGAS faithfulness).
-- An answer takes 3.2 s on average and costs about $0.0004 in API fees (about $0.42 per 1,000 questions).
+- On average 94% of the statements in an answer are directly supported by the quoted source passages (RAGAS faithfulness).
+- 1 of the 2 flagged questions (SF-09) was flagged only by the automatic faithfulness judge; its citation and key facts are correct (see the failure analysis).
+- An answer takes 3.0 s on average and costs about $0.0004 in API fees (about $0.42 per 1,000 questions).
 - 40 combinations of chunk size, number of retrieved passages and relevance threshold were tested; the chosen settings are chunk 500/80 tokens, top-k 6, threshold 0.35 (see Tuning below for the trade-offs).
 
 ## Scorecard
 
 | Metric | What it measures | Result | Target | Status |
 |---|---|---|---|---|
-| Faithfulness | Share of statements in an answer that are backed by the source passages (no made-up facts). | 1.00 | >= 0.85 | Met |
+| Faithfulness | Share of statements in an answer that are backed by the source passages (no made-up facts). | 0.94 | >= 0.85 | Met |
 | Citation hit rate | Answers that cite the correct document and page. | 100% | >= 85% | Met |
 | Out-of-scope refusal rate | Questions the documents do not cover that the assistant declined instead of guessing. | 100% | = 100% | Met |
 | In-scope false refusal rate | Questions the documents do cover that the assistant wrongly declined. | 0% | <= 10% | Met |
 | Key fact accuracy | Answers that contain every key fact of the reference answer (numbers, names, codes), checked word for word. | 93% | - | - |
-| Answer relevancy | How directly the answer addresses the question. | 0.86 | - | - |
+| Answer relevancy | How directly the answer addresses the question. | 0.87 | - | - |
 | Context precision | Whether the passages that contain the answer are ranked first. | 0.78 | - | - |
 | Context recall | Whether the passages given to the model contain everything in the reference answer. | 0.97 | - | - |
 | Retrieval hit rate (top-k) | Questions where the page with the answer was among the passages retrieved by the search step. | 100% | - | - |
-| Average latency | - | 3.2 s | - | - |
-| 95th percentile latency | - | 4.8 s | - | - |
+| Average latency | - | 3.0 s | - | - |
+| 95th percentile latency | - | 3.8 s | - | - |
 | Average cost per question | - | $0.00042 | - | - |
 
 ## Results by question type
@@ -35,7 +36,7 @@ The 20 questions are based on facts in the sample documents: 10 single facts (nu
 
 | Question type | Questions | Passed | Correct citation | Refused |
 |---|---|---|---|---|
-| Single fact | 10 | 10/10 | 10/10 | 0/10 |
+| Single fact | 10 | 9/10 | 10/10 | 0/10 |
 | Cross-page / table | 3 | 2/3 | 3/3 | 0/3 |
 | Confusable (T2 vs T3) | 2 | 2/2 | 2/2 | 0/2 |
 | Out of scope | 5 | 5/5 | - | 5/5 |
@@ -81,16 +82,16 @@ Full evaluation (including RAGAS) of the chosen settings next to the closest alt
 | Metric | This run (chosen settings) | Runner-up (threshold 0.40) |
 |---|---|---|
 | Settings | chunk 500/80 tokens, top-k 6, threshold 0.35 | chunk 500/80 tokens, top-k 6, threshold 0.40 |
-| Faithfulness | 1.00 | 0.98 |
-| Answer relevancy | 0.86 | 0.89 |
-| Context precision | 0.78 | 0.76 |
+| Faithfulness | 0.94 | 0.93 |
+| Answer relevancy | 0.87 | 0.87 |
+| Context precision | 0.78 | 0.77 |
 | Context recall | 0.97 | 0.97 |
 | Citation hit rate | 100% | 100% |
 | Key fact accuracy | 93% | 100% |
 | Out-of-scope refusal rate | 100% | 100% |
 | In-scope false refusal rate | 0% | 0% |
 | Retrieval hit rate (top-k) | 100% | 100% |
-| Average latency | 3.2 s | 3.0 s |
+| Average latency | 3.0 s | 4.7 s |
 | Average cost per question | $0.00042 | $0.00039 |
 
 <details><summary>Full parameter sweep (40 configurations, custom metrics only)</summary>
@@ -144,34 +145,48 @@ Same 20 questions; 4 questions run in parallel, so latencies are higher than in 
 
 ## Failure analysis
 
+**SF-09 (Single fact): Does a T2 customer without a C-wire have to pay for the Power Extender Kit PEK-1?**
+
+- What went wrong: The right page was cited, but only 67% of the statements in the answer are supported by the retrieved passages (RAGAS faithfulness).
+- Note: Flagged by the automatic judge only: the correct page was cited and every key fact is in the answer. Check it by hand before treating it as a real error.
+- Expected source: Product Guide - Lumora Thermostat T2.pdf p.4
+- Assistant's answer: "A T2 customer without a C-wire can receive the Power Extender Kit PEK-1 free of charge if they request it within 60 days of delivery. After that period, it costs $24.99."
+- Cited: Product Guide - Lumora Thermostat T2.pdf p.4
+- Top retrieved: Product Guide - Lumora Thermostat T2.pdf p.4 (0.62); Product Guide - Lumora Thermostat T3.pdf p.4 (0.53); Product Guide - Lumora Thermostat T3.pdf p.3 (0.51)
+
 **CP-03 (Cross-page / table): List all refund approval levels by refund amount per order.**
 
-- What went wrong: The right page was cited, but the answer is incomplete or wrong: it does not contain 'Finance Controller'.
+- What went wrong: The right page was cited, but the answer is incomplete or wrong: it does not contain 'above $5000', 'Finance Controller'.
 - Expected source: SOP - Returns and Refunds.pdf p.3,4
-- Assistant's answer: "1. Up to $250.00 - Customer Care agent (Tier 1) - Approve in OMS directly. 2. $250.01 to $1,000.00 - Team Lead - Approval request in OMS; Team Lead responds within 4 business hours. 3. $1,000.01 to $5,000.00 - Customer Care Manager - Both approvals required before the refund is released."
+- Assistant's answer: "1. Up to $250.00: Customer Care agent (Tier 1) - Approve in OMS directly. 2. $250.01 to $1,000.00: Team Lead - Approval request in OMS; Team Lead responds within 4 business hours. 3. $1,000.01 to $5,000.00: Customer Care Manager - Both approvals required before the refund is released."
 - Cited: SOP - Returns and Refunds.pdf p.4; SOP - Returns and Refunds.pdf p.3
 - Top retrieved: SOP - Returns and Refunds.pdf p.4 (0.55); SOP - Returns and Refunds.pdf p.3 (0.52); SOP - Returns and Refunds.pdf p.5 (0.49)
 
 
 ### Manual review
 
-We checked every flagged answer by hand against the PDFs.
+_Known failure patterns, checked by hand against the PDFs over several evaluation runs. Answers vary slightly between runs, so not every pattern appears in every run._
 
 - **Refund approval table (CP-03, and SF-01 in some runs).** Table 4-1 of the Returns and
   Refunds SOP starts on page 3 and continues on page 4. Because passages are cut per page,
   the last row ("Above $5,000.00: Customer Care Manager and Finance Controller") sits in a
-  separate passage. In this run the assistant listed three of the four levels and attached
-  the note of the missing row ("Both approvals required") to the $1,000.01-$5,000.00 row. In
-  other runs it gave the right $800 answer for SF-01 but cited page 4 instead of page 3. The
-  RAGAS faithfulness score for CP-03 is still 1.00, because every phrase does appear in the
-  passages; only the word-for-word key fact check catches the mix-up. **Fix:** keep tables
-  that continue on the next page together (merge the continuation and repeat the header)
-  before chunking; this is a small change to the ingestion step.
-- **SF-09 (PEK-1 cost), flagged in some runs with faithfulness 0.67.** The answer ("free
-  within 60 days of delivery, $24.99 after that") is correct. The RAGAS judge marked the
-  phrase "a T2 customer without a C-wire" as unsupported because the guide states the
-  C-wire condition in the previous sentence. This is a false alarm of the automatic judge,
-  which is the same small model as the assistant. For a sign-off run use a stronger judge:
+  separate passage. When CP-03 fails, the assistant lists three of the four levels and
+  attaches the note of the missing row ("Both approvals required") to the
+  $1,000.01-$5,000.00 row. When SF-01 fails, the assistant gives the right $800 answer but
+  cites page 4 instead of page 3. The RAGAS faithfulness score of such a CP-03 answer is
+  still high, because every phrase does appear in the passages; only the word-for-word key
+  fact check catches the mix-up. **Fix:** keep tables that continue on the next page
+  together (merge the continuation and repeat the header) before chunking; this is a small
+  change to the ingestion step.
+- **Faithfulness false alarms (SF-09, CF-02), flagged in some runs with faithfulness
+  0.67.** Both answers are correct. For SF-09 (PEK-1 cost: "free within 60 days of
+  delivery, $24.99 after that") the RAGAS judge marked the phrase "a T2 customer without a
+  C-wire" as unsupported because the guide states the C-wire condition in the previous
+  sentence. For CF-02 (T3 error E4: humidity sensor fault, power-cycle and start a warranty
+  claim if it persists) the guide gives the same steps in a table row worded differently,
+  which the judge did not match. These failures are reported as "judge only": the correct
+  page is cited and every key fact is in the answer. The judge is the same small model as
+  the assistant; for a sign-off run use a stronger judge:
   `make eval ARGS="--judge-model openai/gpt-4o"`.
 - **Low context precision (SF-03, SF-04, SF-05)** means the right page was retrieved but
   ranked behind pages on similar topics (for SF-04 the return-window page ranks 5th, behind
@@ -188,33 +203,34 @@ We checked every flagged answer by hand against the PDFs.
 
 ## Recommendations
 
-1. Some answers cite the right page but leave out or mix up details, typically in tables that continue on the next page. Use table-aware parsing (keep each table, with its header, in one chunk even across a page break) and ask the model to reproduce every row when listing table contents.
-2. Re-run this evaluation with 15-20 real questions from your support team before go-live; the harness is ready (`eval/questions.yaml` + `make eval`).
-3. Keep the evaluation in the delivery checklist: re-run `make eval` after adding documents or changing models, and compare against this report.
-4. Most questions that are not covered by the documents still look similar to real topics (for example a product feature that is not documented). They are caught by the model's refusal, not by the score threshold, so keep out-of-scope questions in every test set.
+1. Some answers contain statements that are not in the passages. Tighten the prompt ('only facts from the excerpts') or use a stronger model.
+2. Some answers cite the right page but leave out or mix up details, typically in tables that continue on the next page. Use table-aware parsing (keep each table, with its header, in one chunk even across a page break) and ask the model to reproduce every row when listing table contents.
+3. Re-run this evaluation with 15-20 real questions from your support team before go-live; the harness is ready (`eval/questions.yaml` + `make eval`).
+4. Keep the evaluation in the delivery checklist: re-run `make eval` after adding documents or changing models, and compare against this report.
+5. Most questions that are not covered by the documents still look similar to real topics (for example a product feature that is not documented). They are caught by the model's refusal, not by the score threshold, so keep out-of-scope questions in every test set.
 
 ## Per-question details
 
 | ID | Question | Outcome | Cited | Key facts | Top score | Faith. | Relev. | Ctx prec. | Ctx rec. | Latency | Cost |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | SF-01 | Who has to approve a refund of $800 on a single order? | Answered | SOP - Returns and Refunds.pdf p.4; SOP - Returns and Refunds.pdf p.3 | 1/1 | 0.60 | 1.00 | 0.83 | 0.71 | 1.00 | 4.0 s | $0.00052 |
-| SF-02 | What does error code E7 mean on the Thermostat T2? | Answered | Product Guide - Lumora Thermostat T2.pdf p.6 | 2/2 | 0.78 | 1.00 | 0.99 | 0.70 | 1.00 | 3.1 s | $0.00036 |
-| SF-03 | How do I factory reset a Lumora Thermostat T2? | Answered | Product Guide - Lumora Thermostat T2.pdf p.5 | 2/2 | 0.67 | 1.00 | 0.98 | 0.25 | 1.00 | 4.2 s | $0.00055 |
-| SF-04 | How long do customers have to return a product they bought directly from Lumora? | Answered | SOP - Returns and Refunds.pdf p.1 | 2/2 | 0.66 | 1.00 | 0.84 | 0.37 | 1.00 | 3.0 s | $0.00050 |
-| SF-05 | What are the first response and resolution targets for a P1 critical ticket? | Answered | SOP - Ticket Escalation.pdf p.1 | 2/2 | 0.60 | 1.00 | 0.97 | 0.45 | 1.00 | 4.8 s | $0.00046 |
-| SF-06 | What format do RMA numbers use, and how long is an RMA valid? | Answered | SOP - RMA Process.pdf p.1 | 2/2 | 0.66 | 1.00 | 0.87 | 1.00 | 1.00 | 2.9 s | $0.00050 |
-| SF-07 | How many failed sign-in attempts lock a Lumora account, and for how long? | Answered | FAQ - App and Account.pdf p.1 | 2/2 | 0.55 | 1.00 | 0.62 | 1.00 | 1.00 | 2.8 s | $0.00051 |
-| SF-08 | How much does a Lumora Plus subscription cost? | Answered | FAQ - Billing and Subscriptions.pdf p.3 | 2/2 | 0.70 | 1.00 | 0.89 | 1.00 | 1.00 | 2.7 s | $0.00050 |
-| SF-09 | Does a T2 customer without a C-wire have to pay for the Power Extender Kit PEK-1? | Answered | Product Guide - Lumora Thermostat T2.pdf p.4 | 2/2 | 0.62 | 1.00 | 0.67 | 0.67 | 1.00 | 3.7 s | $0.00042 |
-| SF-10 | How quickly must the Safety Officer be notified about a safety case? | Answered | SOP - Ticket Escalation.pdf p.3 | 1/1 | 0.60 | 1.00 | 0.99 | 1.00 | 1.00 | 3.0 s | $0.00027 |
-| CP-01 | In which cases is a C-wire mandatory for the Thermostat T3? | Answered | Product Guide - Lumora Thermostat T3.pdf p.4 | 3/3 | 0.68 | 1.00 | 0.96 | 0.97 | 1.00 | 4.3 s | $0.00047 |
-| CP-02 | How does the holiday return extension work, and which orders are excluded? | Answered | SOP - Returns and Refunds.pdf p.1; SOP - Returns and Refunds.pdf p.2 | 5/5 | 0.42 | 1.00 | 0.60 | 0.92 | 1.00 | 4.9 s | $0.00054 |
-| CP-03 | List all refund approval levels by refund amount per order. | Incomplete answer | SOP - Returns and Refunds.pdf p.4; SOP - Returns and Refunds.pdf p.3 | 4/5 | 0.55 | 1.00 | 0.70 | 1.00 | 1.00 | 3.8 s | $0.00043 |
-| CF-01 | How long is the warranty on the Thermostat T3? | Answered | Policy - Limited Warranty.pdf p.2; Product Guide - Lumora Thermostat T3.pdf p.7 | 1/1 | 0.69 | 1.00 | 0.97 | 0.95 | 1.00 | 4.0 s | $0.00054 |
-| CF-02 | What does error E4 mean on the Thermostat T3? | Answered | Product Guide - Lumora Thermostat T3.pdf p.5 | 1/1 | 0.69 | 1.00 | 0.99 | 0.72 | 0.50 | 3.7 s | $0.00037 |
-| OOS-01 | Who is the CEO of Lumora Home Systems? | Refused (correct) | - | - | 0.53 | - | - | - | - | 2.2 s | $0.00047 |
-| OOS-02 | How do I make pizza dough at home? | Refused (correct) | - | - | 0.15 | - | - | - | - | 1.4 s | $0.00000 |
-| OOS-03 | Does the Thermostat T3 work with Apple HomeKit? | Refused (correct) | - | - | 0.58 | - | - | - | - | 2.3 s | $0.00044 |
+| SF-02 | What does error code E7 mean on the Thermostat T2? | Answered | Product Guide - Lumora Thermostat T2.pdf p.6 | 2/2 | 0.78 | 1.00 | 0.99 | 0.70 | 1.00 | 2.8 s | $0.00036 |
+| SF-03 | How do I factory reset a Lumora Thermostat T2? | Answered | Product Guide - Lumora Thermostat T2.pdf p.5 | 2/2 | 0.67 | 1.00 | 0.98 | 0.25 | 1.00 | 3.1 s | $0.00055 |
+| SF-04 | How long do customers have to return a product they bought directly from Lumora? | Answered | SOP - Returns and Refunds.pdf p.1 | 2/2 | 0.66 | 0.75 | 0.84 | 0.37 | 1.00 | 3.2 s | $0.00050 |
+| SF-05 | What are the first response and resolution targets for a P1 critical ticket? | Answered | SOP - Ticket Escalation.pdf p.1 | 2/2 | 0.60 | 1.00 | 0.97 | 0.45 | 1.00 | 2.7 s | $0.00046 |
+| SF-06 | What format do RMA numbers use, and how long is an RMA valid? | Answered | SOP - RMA Process.pdf p.1 | 2/2 | 0.66 | 1.00 | 0.90 | 1.00 | 1.00 | 3.8 s | $0.00050 |
+| SF-07 | How many failed sign-in attempts lock a Lumora account, and for how long? | Answered | FAQ - App and Account.pdf p.1 | 2/2 | 0.55 | 1.00 | 0.62 | 1.00 | 1.00 | 2.5 s | $0.00051 |
+| SF-08 | How much does a Lumora Plus subscription cost? | Answered | FAQ - Billing and Subscriptions.pdf p.3 | 2/2 | 0.70 | 1.00 | 0.89 | 1.00 | 1.00 | 2.8 s | $0.00050 |
+| SF-09 | Does a T2 customer without a C-wire have to pay for the Power Extender Kit PEK-1? | Answered, low faithfulness | Product Guide - Lumora Thermostat T2.pdf p.4 | 2/2 | 0.62 | 0.67 | 0.84 | 0.67 | 1.00 | 3.3 s | $0.00042 |
+| SF-10 | How quickly must the Safety Officer be notified about a safety case? | Answered | SOP - Ticket Escalation.pdf p.3 | 1/1 | 0.60 | 1.00 | 0.98 | 1.00 | 1.00 | 3.1 s | $0.00027 |
+| CP-01 | In which cases is a C-wire mandatory for the Thermostat T3? | Answered | Product Guide - Lumora Thermostat T3.pdf p.4 | 3/3 | 0.68 | 1.00 | 0.96 | 0.97 | 1.00 | 3.7 s | $0.00047 |
+| CP-02 | How does the holiday return extension work, and which orders are excluded? | Answered | SOP - Returns and Refunds.pdf p.1; SOP - Returns and Refunds.pdf p.2 | 5/5 | 0.42 | 1.00 | 0.60 | 0.92 | 1.00 | 3.5 s | $0.00054 |
+| CP-03 | List all refund approval levels by refund amount per order. | Incomplete answer | SOP - Returns and Refunds.pdf p.4; SOP - Returns and Refunds.pdf p.3 | 3/5 | 0.55 | 0.75 | 0.70 | 1.00 | 1.00 | 3.7 s | $0.00043 |
+| CF-01 | How long is the warranty on the Thermostat T3? | Answered | Product Guide - Lumora Thermostat T3.pdf p.7; Policy - Limited Warranty.pdf p.2 | 1/1 | 0.69 | 1.00 | 0.97 | 0.95 | 1.00 | 3.4 s | $0.00054 |
+| CF-02 | What does error E4 mean on the Thermostat T3? | Answered | Product Guide - Lumora Thermostat T3.pdf p.5 | 1/1 | 0.69 | 1.00 | 0.99 | 0.72 | 0.50 | 3.2 s | $0.00037 |
+| OOS-01 | Who is the CEO of Lumora Home Systems? | Refused (correct) | - | - | 0.53 | - | - | - | - | 2.7 s | $0.00047 |
+| OOS-02 | How do I make pizza dough at home? | Refused (correct) | - | - | 0.15 | - | - | - | - | 1.3 s | $0.00000 |
+| OOS-03 | Does the Thermostat T3 work with Apple HomeKit? | Refused (correct) | - | - | 0.58 | - | - | - | - | 3.4 s | $0.00044 |
 | OOS-04 | What was Lumora's total revenue last year? | Refused (correct) | - | - | 0.51 | - | - | - | - | 2.4 s | $0.00048 |
 | OOS-05 | Write a Python function that sorts a list of numbers. | Refused (correct) | - | - | 0.15 | - | - | - | - | 1.0 s | $0.00000 |
 
@@ -239,7 +255,7 @@ Faith. = faithfulness, Relev. = answer relevancy, Ctx prec. / Ctx rec. = context
 
 **SF-04. How long do customers have to return a product they bought directly from Lumora?**
 
-- Answer: Customers may return any product bought directly from Lumora within 30 calendar days of the delivery date, for any reason. If the order was delivered between November 15 and December 31, returns can be made until January 31 of the following year, or within the standard 30 days if that is later.
+- Answer: Customers may return any product bought directly from Lumora within 30 calendar days of the delivery date, for any reason. If the delivery is between November 15 and December 31, the return can be made until January 31 of the following year, or within the standard 30 days if that is later.
 - Reference: 30 calendar days, counted from the delivery date shown in OMS (not the order date). The return is on time if the RMA is created within the window.
 
 **SF-05. What are the first response and resolution targets for a P1 critical ticket?**
@@ -284,7 +300,7 @@ Faith. = faithfulness, Relev. = answer relevancy, Ctx prec. / Ctx rec. = context
 
 **CP-03. List all refund approval levels by refund amount per order.**
 
-- Answer: 1. Up to $250.00 - Customer Care agent (Tier 1) - Approve in OMS directly. 2. $250.01 to $1,000.00 - Team Lead - Approval request in OMS; Team Lead responds within 4 business hours. 3. $1,000.01 to $5,000.00 - Customer Care Manager - Both approvals required before the refund is released.
+- Answer: 1. Up to $250.00: Customer Care agent (Tier 1) - Approve in OMS directly. 2. $250.01 to $1,000.00: Team Lead - Approval request in OMS; Team Lead responds within 4 business hours. 3. $1,000.01 to $5,000.00: Customer Care Manager - Both approvals required before the refund is released.
 - Reference: Up to $250.00: the Customer Care agent (Tier 1). $250.01 to $1,000.00: a Team Lead. $1,000.01 to $5,000.00: the Customer Care Manager. Above $5,000.00: both the Customer Care Manager and the Finance Controller.
 
 **CF-01. How long is the warranty on the Thermostat T3?**

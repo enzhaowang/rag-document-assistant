@@ -77,14 +77,14 @@
     "in_context": true
    }
   ],
-  "latency_ms": 4005,
+  "latency_ms": 3967,
   "input_tokens": 3125,
   "output_tokens": 82,
   "embedding_tokens": 14,
   "cost_usd": 0.0005182300000000001,
   "scores": {
    "faithfulness": 1.0,
-   "answer_relevancy": 0.8344025166347085,
+   "answer_relevancy": 0.8252998518307776,
    "context_precision": 0.7099999999858001,
    "context_recall": 1.0
   },
@@ -168,7 +168,7 @@
     "in_context": true
    }
   ],
-  "latency_ms": 3110,
+  "latency_ms": 2824,
   "input_tokens": 2090,
   "output_tokens": 85,
   "embedding_tokens": 14,
@@ -259,14 +259,14 @@
     "in_context": true
    }
   ],
-  "latency_ms": 4212,
+  "latency_ms": 3141,
   "input_tokens": 3307,
   "output_tokens": 93,
   "embedding_tokens": 13,
   "cost_usd": 0.0005521099999999999,
   "scores": {
    "faithfulness": 1.0,
-   "answer_relevancy": 0.9838912569229207,
+   "answer_relevancy": 0.9838952697529125,
    "context_precision": 0.249999999975,
    "context_recall": 1.0
   },
@@ -294,7 +294,7 @@
    "30 calendar days|30 days",
    "delivery"
   ],
-  "answer": "Customers may return any product bought directly from Lumora within 30 calendar days of the delivery date, for any reason. If the order was delivered between November 15 and December 31, returns can be made until January 31 of the following year, or within the standard 30 days if that is later.",
+  "answer": "Customers may return any product bought directly from Lumora within 30 calendar days of the delivery date, for any reason. If the delivery is between November 15 and December 31, the return can be made until January 31 of the following year, or within the standard 30 days if that is later.",
   "answered": true,
   "refusal_reason": null,
   "standalone_question": "How long do customers have to return a product they bought directly from Lumora?",
@@ -334,7 +334,7 @@
    {
     "document": "FAQ - Shipping and Delivery.pdf",
     "page": 3,
-    "score": 0.5962,
+    "score": 0.5961,
     "in_context": true
    },
    {
@@ -346,18 +346,18 @@
    {
     "document": "Policy - Limited Warranty.pdf",
     "page": 4,
-    "score": 0.5845,
+    "score": 0.5844,
     "in_context": true
    }
   ],
-  "latency_ms": 2987,
+  "latency_ms": 3204,
   "input_tokens": 2946,
   "output_tokens": 92,
   "embedding_tokens": 16,
   "cost_usd": 0.0004974199999999999,
   "scores": {
-   "faithfulness": 1.0,
-   "answer_relevancy": 0.8357174472823599,
+   "faithfulness": 0.75,
+   "answer_relevancy": 0.8426469599187625,
    "context_precision": 0.36666666664833336,
    "context_recall": 1.0
   },
@@ -441,14 +441,14 @@
     "in_context": true
    }
   ],
-  "latency_ms": 4838,
+  "latency_ms": 2689,
   "input_tokens": 2872,
   "output_tokens": 53,
   "embedding_tokens": 15,
   "cost_usd": 0.00046290000000000003,
   "scores": {
    "faithfulness": 1.0,
-   "answer_relevancy": 0.9730892541647423,
+   "answer_relevancy": 0.97308723163435,
    "context_precision": 0.4499999999775,
    "context_recall": 1.0
   },
@@ -532,15 +532,15 @@
     "in_context": true
    }
   ],
-  "latency_ms": 2918,
+  "latency_ms": 3763,
   "input_tokens": 3040,
   "output_tokens": 73,
   "embedding_tokens": 17,
   "cost_usd": 0.0005001399999999999,
   "scores": {
    "faithfulness": 1.0,
-   "answer_relevancy": 0.8674765314937556,
-   "context_precision": 0.9999999999,
+   "answer_relevancy": 0.8988773237364599,
+   "context_precision": 0.9999999999666667,
    "context_recall": 1.0
   },
   "score_errors": {},
@@ -623,14 +623,14 @@
     "in_context": true
    }
   ],
-  "latency_ms": 2846,
+  "latency_ms": 2510,
   "input_tokens": 3226,
   "output_tokens": 43,
   "embedding_tokens": 17,
   "cost_usd": 0.00051004,
   "scores": {
    "faithfulness": 1.0,
-   "answer_relevancy": 0.6162629172620891,
+   "answer_relevancy": 0.6162861702876824,
    "context_precision": 0.9999999999,
    "context_recall": 1.0
   },
@@ -692,7 +692,7 @@
    {
     "document": "FAQ - Billing and Subscriptions.pdf",
     "page": 1,
-    "score": 0.6051,
+    "score": 0.6052,
     "in_context": true
    },
    {
@@ -714,14 +714,14 @@
     "in_context": true
    }
   ],
-  "latency_ms": 2688,
+  "latency_ms": 2787,
   "input_tokens": 3091,
   "output_tokens": 55,
   "embedding_tokens": 10,
   "cost_usd": 0.00049685,
   "scores": {
    "faithfulness": 1.0,
-   "answer_relevancy": 0.8881333644238333,
+   "answer_relevancy": 0.8897959990762295,
    "context_precision": 0.9999999999,
    "context_recall": 1.0
   },
@@ -805,21 +805,21 @@
     "in_context": true
    }
   ],
-  "latency_ms": 3682,
+  "latency_ms": 3272,
   "input_tokens": 2507,
   "output_tokens": 77,
   "embedding_tokens": 24,
   "cost_usd": 0.00042273,
   "scores": {
-   "faithfulness": 1.0,
-   "answer_relevancy": 0.6697406047853547,
+   "faithfulness": 0.6666666666666666,
+   "answer_relevancy": 0.837548191171034,
    "context_precision": 0.6666666666333333,
    "context_recall": 1.0
   },
   "score_errors": {},
   "error": null,
-  "diagnosis": "ok",
-  "diagnosis_detail": "Answered with a correct citation."
+  "diagnosis": "low_faithfulness",
+  "diagnosis_detail": "The right page was cited, but only 67% of the statements in the answer are supported by the retrieved passages (RAGAS faithfulness)."
  },
  {
   "id": "SF-10",
@@ -892,14 +892,14 @@
     "in_context": false
    }
   ],
-  "latency_ms": 3021,
+  "latency_ms": 3130,
   "input_tokens": 1603,
   "output_tokens": 52,
   "embedding_tokens": 13,
   "cost_usd": 0.00027191,
   "scores": {
    "faithfulness": 1.0,
-   "answer_relevancy": 0.9866103219681968,
+   "answer_relevancy": 0.9779140956260761,
    "context_precision": 0.9999999999,
    "context_recall": 1.0
   },
@@ -988,14 +988,14 @@
     "in_context": true
    }
   ],
-  "latency_ms": 4267,
+  "latency_ms": 3684,
   "input_tokens": 2781,
   "output_tokens": 95,
   "embedding_tokens": 16,
   "cost_usd": 0.00047446999999999995,
   "scores": {
    "faithfulness": 1.0,
-   "answer_relevancy": 0.9573980227918097,
+   "answer_relevancy": 0.9573745475334657,
    "context_precision": 0.9666666666473333,
    "context_recall": 1.0
   },
@@ -1090,7 +1090,7 @@
     "in_context": true
    }
   ],
-  "latency_ms": 4889,
+  "latency_ms": 3460,
   "input_tokens": 3185,
   "output_tokens": 103,
   "embedding_tokens": 14,
@@ -1128,11 +1128,11 @@
   "key_facts": [
    "$250",
    "Team Lead",
-   "$5000",
+   "above $5000|over $5000|more than $5000|exceeding $5000|$5000.01",
    "Customer Care Manager",
    "Finance Controller"
   ],
-  "answer": "1. Up to $250.00 - Customer Care agent (Tier 1) - Approve in OMS directly.\n2. $250.01 to $1,000.00 - Team Lead - Approval request in OMS; Team Lead responds within 4 business hours.\n3. $1,000.01 to $5,000.00 - Customer Care Manager - Both approvals required before the refund is released.",
+  "answer": "1. Up to $250.00: Customer Care agent (Tier 1) - Approve in OMS directly.\n2. $250.01 to $1,000.00: Team Lead - Approval request in OMS; Team Lead responds within 4 business hours.\n3. $1,000.01 to $5,000.00: Customer Care Manager - Both approvals required before the refund is released.",
   "answered": true,
   "refusal_reason": null,
   "standalone_question": "List all refund approval levels by refund amount per order.",
@@ -1190,21 +1190,21 @@
     "in_context": false
    }
   ],
-  "latency_ms": 3775,
+  "latency_ms": 3699,
   "input_tokens": 2351,
   "output_tokens": 129,
   "embedding_tokens": 11,
   "cost_usd": 0.00043026999999999996,
   "scores": {
-   "faithfulness": 1.0,
-   "answer_relevancy": 0.7006889570456688,
+   "faithfulness": 0.75,
+   "answer_relevancy": 0.7007161122054079,
    "context_precision": 0.9999999999666667,
    "context_recall": 1.0
   },
   "score_errors": {},
   "error": null,
   "diagnosis": "missing_key_facts",
-  "diagnosis_detail": "The right page was cited, but the answer is incomplete or wrong: it does not contain 'Finance Controller'."
+  "diagnosis_detail": "The right page was cited, but the answer is incomplete or wrong: it does not contain 'above $5000', 'Finance Controller'."
  },
  {
   "id": "CF-01",
@@ -1214,12 +1214,16 @@
   "ground_truth": "The Thermostat T3 has a 3-year (36-month) limited warranty from the date of delivery, one year longer than the T2. It can be extended to 4 years when installed by a Lumora Certified Installer, under the conditions of the Limited Warranty Policy.",
   "expected_sources": [
    "Product Guide - Lumora Thermostat T3.pdf p.7",
-   "Policy - Limited Warranty.pdf p.1"
+   "Policy - Limited Warranty.pdf p.1,2"
   ],
   "expected_pages": [
    [
     "Policy - Limited Warranty.pdf",
     1
+   ],
+   [
+    "Policy - Limited Warranty.pdf",
+    2
    ],
    [
     "Product Guide - Lumora Thermostat T3.pdf",
@@ -1235,12 +1239,12 @@
   "standalone_question": "How long is the warranty on the Thermostat T3?",
   "cited_sources": [
    [
-    "Policy - Limited Warranty.pdf",
-    2
-   ],
-   [
     "Product Guide - Lumora Thermostat T3.pdf",
     7
+   ],
+   [
+    "Policy - Limited Warranty.pdf",
+    2
    ]
   ],
   "contexts": [
@@ -1261,7 +1265,7 @@
    {
     "document": "Product Guide - Lumora Thermostat T3.pdf",
     "page": 7,
-    "score": 0.6872,
+    "score": 0.6871,
     "in_context": true
    },
    {
@@ -1273,13 +1277,13 @@
    {
     "document": "Product Guide - Lumora Thermostat T3.pdf",
     "page": 1,
-    "score": 0.6235,
+    "score": 0.6234,
     "in_context": true
    },
    {
     "document": "Product Guide - Lumora Thermostat T2.pdf",
     "page": 7,
-    "score": 0.6209,
+    "score": 0.6208,
     "in_context": true
    },
    {
@@ -1289,14 +1293,14 @@
     "in_context": true
    }
   ],
-  "latency_ms": 3952,
+  "latency_ms": 3383,
   "input_tokens": 3219,
   "output_tokens": 91,
   "embedding_tokens": 12,
   "cost_usd": 0.00053769,
   "scores": {
    "faithfulness": 1.0,
-   "answer_relevancy": 0.9722447494057346,
+   "answer_relevancy": 0.9722421715940639,
    "context_precision": 0.94999999997625,
    "context_recall": 1.0
   },
@@ -1379,14 +1383,14 @@
     "in_context": true
    }
   ],
-  "latency_ms": 3716,
+  "latency_ms": 3174,
   "input_tokens": 2089,
   "output_tokens": 90,
   "embedding_tokens": 13,
   "cost_usd": 0.00036760999999999993,
   "scores": {
    "faithfulness": 1.0,
-   "answer_relevancy": 0.985582072648803,
+   "answer_relevancy": 0.9855947367969801,
    "context_precision": 0.7222222221981481,
    "context_recall": 0.5
   },
@@ -1455,7 +1459,7 @@
     "in_context": true
    }
   ],
-  "latency_ms": 2187,
+  "latency_ms": 2694,
   "input_tokens": 3089,
   "output_tokens": 15,
   "embedding_tokens": 10,
@@ -1519,7 +1523,7 @@
     "in_context": false
    }
   ],
-  "latency_ms": 1357,
+  "latency_ms": 1298,
   "input_tokens": 0,
   "output_tokens": 0,
   "embedding_tokens": 9,
@@ -1590,7 +1594,7 @@
     "in_context": true
    }
   ],
-  "latency_ms": 2301,
+  "latency_ms": 3424,
   "input_tokens": 2858,
   "output_tokens": 15,
   "embedding_tokens": 12,
@@ -1661,7 +1665,7 @@
     "in_context": true
    }
   ],
-  "latency_ms": 2413,
+  "latency_ms": 2377,
   "input_tokens": 3133,
   "output_tokens": 15,
   "embedding_tokens": 10,
@@ -1725,7 +1729,7 @@
     "in_context": false
    }
   ],
-  "latency_ms": 992,
+  "latency_ms": 989,
   "input_tokens": 0,
   "output_tokens": 0,
   "embedding_tokens": 11,

@@ -7,6 +7,7 @@ then the details (tuning, failure analysis, per-question table, method).
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -307,6 +308,16 @@ def _bottom_line(
             f"On average {faith:.0%} of the statements in an answer are directly supported by "
             "the quoted source passages (RAGAS faithfulness)."
         )
+    judge_only = [r.id for r in results if is_judge_only(r)]
+    if judge_only:
+        flagged = sum(not r.passed for r in results)
+        one = len(judge_only) == 1
+        lines.append(
+            f"{len(judge_only)} of the {flagged} flagged question{'' if flagged == 1 else 's'} "
+            f"({', '.join(judge_only)}) {'was' if one else 'were'} flagged only by the "
+            f"automatic faithfulness judge; {'its' if one else 'their'} citation and key facts "
+            "are correct (see the failure analysis)."
+        )
     latency = metrics.get("avg_latency_ms")
     cost = metrics.get("avg_cost_usd")
     if latency is not None and cost is not None:
@@ -481,6 +492,7 @@ def _failure_section(results: Sequence[QuestionResult]) -> list[str]:
             f"**{r.id} ({CATEGORY_LABELS[r.category]}): {r.question}**",
             "",
             f"- What went wrong: {r.diagnosis_detail}",
+            *([f"- Note: {JUDGE_ONLY_NOTE}"] if is_judge_only(r) else []),
             f"- Expected source: {'; '.join(r.expected_sources) or 'none (should refuse)'}",
             f'- Assistant\'s answer: "{_short(r.answer, 300)}"',
             f"- Cited: {_pages(r.cited_sources)}",
@@ -490,6 +502,61 @@ def _failure_section(results: Sequence[QuestionResult]) -> list[str]:
                 if r.retrieved
                 else "none"
             ),
+            "",
+        ]
+    return lines
+
+
+# Question ids as used in eval/questions.yaml, e.g. "SF-01", "CP-03", "OOS-05".
+_QUESTION_ID = re.compile(r"\b[A-Z]{2,4}-\d{2}\b")
+
+JUDGE_ONLY_NOTE = (
+    "Flagged by the automatic judge only: the correct page was cited and every key fact is "
+    "in the answer. Check it by hand before treating it as a real error."
+)
+
+
+def is_judge_only(result: QuestionResult) -> bool:
+    """True if the failure comes only from the RAGAS judge, not from a deterministic check.
+
+    `diagnose()` reports low faithfulness only after the citation and key fact checks passed.
+    """
+    return result.diagnosis is Diagnosis.LOW_FAITHFULNESS
+
+
+def reviewed_ids(review_notes: str) -> set[str]:
+    """Question ids mentioned in the hand-written review notes."""
+    return set(_QUESTION_ID.findall(review_notes))
+
+
+def _review_section(results: Sequence[QuestionResult], review_notes: str) -> list[str]:
+    """Hand-written review notes, plus a warning for failures they do not cover.
+
+    The notes are written once and describe failure patterns seen across runs, while the
+    rest of the report is generated from the current run. Any failure of this run whose
+    question id does not appear in the notes is listed as not yet reviewed by hand.
+    """
+    lines = [
+        "_Known failure patterns, checked by hand against the PDFs over several evaluation "
+        "runs. Answers vary slightly between runs, so not every pattern appears in every "
+        "run._",
+        "",
+        review_notes.strip(),
+        "",
+    ]
+    covered = reviewed_ids(review_notes)
+    unreviewed = [r for r in results if not r.passed and r.id not in covered]
+    if unreviewed:
+        items = ", ".join(
+            f"{r.id} ({r.diagnosis.value.replace('_', ' ')}"
+            + (", judge only" if is_judge_only(r) else "")
+            + ")"
+            for r in unreviewed
+        )
+        lines += [
+            f"**Not yet reviewed by hand: {items}.** These failures are not covered by the "
+            "notes above; only the automatic diagnosis in the failure analysis applies to "
+            "them until someone checks the answers against the documents.",
             "",
         ]
     return lines
@@ -663,7 +730,7 @@ def render_summary(
         "",
     ]
     if review_notes:
-        out += ["### Manual review", "", review_notes.strip(), ""]
+        out += ["### Manual review", "", *_review_section(results, review_notes)]
     risks = _risk_section(results, threshold)
     if risks:
         out += ["### Risks and near misses", "", *risks, ""]

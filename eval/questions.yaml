@@ -203,7 +203,12 @@ questions:
         pages: [3, 4]
     should_answer: true
     fact_ids: [SOP-RET-04, SOP-RET-05]
-    key_facts: ["$250", "Team Lead", "$5000", "Customer Care Manager", "Finance Controller"]
+    key_facts:
+      - "$250"
+      - "Team Lead"
+      - "above $5000|over $5000|more than $5000|exceeding $5000|$5000.01"
+      - "Customer Care Manager"
+      - "Finance Controller"
 
   # --- Confusable facts (T2 vs T3) -----------------------------------------------------
   - id: CF-01
@@ -217,7 +222,7 @@ questions:
       - document: Product Guide - Lumora Thermostat T3.pdf
         pages: [7]
       - document: Policy - Limited Warranty.pdf
-        pages: [1]
+        pages: [1, 2]
     should_answer: true
     fact_ids: [PG-T3-06]
     key_facts: ["3-year|3 years|three years|36-month|36 months"]

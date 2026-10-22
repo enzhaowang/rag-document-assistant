@@ -1,6 +1,6 @@
 # Evaluation Summary: Lumora Document Assistant
 
-_Generated 2026-10-22T17:35:54+08:00 by `make eval` - 20 questions - chat model `openai/gpt-4o-mini` - chunk 500/80 tokens, top-k 6, threshold 0.40._
+_Generated 2026-10-22T17:59:05+08:00 by `make eval` - 20 questions - chat model `openai/gpt-4o-mini` - chunk 500/80 tokens, top-k 6, threshold 0.40._
 
 ## Bottom line
 
@@ -8,24 +8,25 @@ _Generated 2026-10-22T17:35:54+08:00 by `make eval` - 20 questions - chat model 
 - Of the 15 questions whose answer is in the documents, the assistant answered 15 and cited the correct document and page for 15 (100%).
 - It declined 5 of 5 questions that the documents do not cover (for example "Who is the CEO of Lumora Home Systems?"): it never invented an answer.
 - 15 of 15 answers contain every key fact of the reference answer.
-- On average 98% of the statements in an answer are directly supported by the quoted source passages (RAGAS faithfulness).
-- An answer takes 3.0 s on average and costs about $0.0004 in API fees (about $0.39 per 1,000 questions).
+- On average 93% of the statements in an answer are directly supported by the quoted source passages (RAGAS faithfulness).
+- 2 of the 2 flagged questions (SF-09, CF-02) were flagged only by the automatic faithfulness judge; their citation and key facts are correct (see the failure analysis).
+- An answer takes 4.7 s on average and costs about $0.0004 in API fees (about $0.39 per 1,000 questions).
 
 ## Scorecard
 
 | Metric | What it measures | Result | Target | Status |
 |---|---|---|---|---|
-| Faithfulness | Share of statements in an answer that are backed by the source passages (no made-up facts). | 0.98 | >= 0.85 | Met |
+| Faithfulness | Share of statements in an answer that are backed by the source passages (no made-up facts). | 0.93 | >= 0.85 | Met |
 | Citation hit rate | Answers that cite the correct document and page. | 100% | >= 85% | Met |
 | Out-of-scope refusal rate | Questions the documents do not cover that the assistant declined instead of guessing. | 100% | = 100% | Met |
 | In-scope false refusal rate | Questions the documents do cover that the assistant wrongly declined. | 0% | <= 10% | Met |
 | Key fact accuracy | Answers that contain every key fact of the reference answer (numbers, names, codes), checked word for word. | 100% | - | - |
-| Answer relevancy | How directly the answer addresses the question. | 0.89 | - | - |
-| Context precision | Whether the passages that contain the answer are ranked first. | 0.76 | - | - |
+| Answer relevancy | How directly the answer addresses the question. | 0.87 | - | - |
+| Context precision | Whether the passages that contain the answer are ranked first. | 0.77 | - | - |
 | Context recall | Whether the passages given to the model contain everything in the reference answer. | 0.97 | - | - |
 | Retrieval hit rate (top-k) | Questions where the page with the answer was among the passages retrieved by the search step. | 100% | - | - |
-| Average latency | - | 3.0 s | - | - |
-| 95th percentile latency | - | 3.9 s | - | - |
+| Average latency | - | 4.7 s | - | - |
+| 95th percentile latency | - | 6.7 s | - | - |
 | Average cost per question | - | $0.00039 | - | - |
 
 ## Results by question type
@@ -36,7 +37,7 @@ The 20 questions are based on facts in the sample documents: 10 single facts (nu
 |---|---|---|---|---|
 | Single fact | 10 | 9/10 | 10/10 | 0/10 |
 | Cross-page / table | 3 | 3/3 | 3/3 | 0/3 |
-| Confusable (T2 vs T3) | 2 | 2/2 | 2/2 | 0/2 |
+| Confusable (T2 vs T3) | 2 | 1/2 | 2/2 | 0/2 |
 | Out of scope | 5 | 5/5 | - | 5/5 |
 
 ## Failure analysis
@@ -44,10 +45,20 @@ The 20 questions are based on facts in the sample documents: 10 single facts (nu
 **SF-09 (Single fact): Does a T2 customer without a C-wire have to pay for the Power Extender Kit PEK-1?**
 
 - What went wrong: The right page was cited, but only 67% of the statements in the answer are supported by the retrieved passages (RAGAS faithfulness).
+- Note: Flagged by the automatic judge only: the correct page was cited and every key fact is in the answer. Check it by hand before treating it as a real error.
 - Expected source: Product Guide - Lumora Thermostat T2.pdf p.4
-- Assistant's answer: "A T2 customer without a C-wire can receive the Power Extender Kit PEK-1 free of charge if they request it within 60 days of delivery. After that, it costs $24.99."
+- Assistant's answer: "A T2 customer without a C-wire can receive the Power Extender Kit PEK-1 free of charge if they request it within 60 days of delivery. After that period, it costs $24.99."
 - Cited: Product Guide - Lumora Thermostat T2.pdf p.4
 - Top retrieved: Product Guide - Lumora Thermostat T2.pdf p.4 (0.62); Product Guide - Lumora Thermostat T3.pdf p.4 (0.53); Product Guide - Lumora Thermostat T3.pdf p.3 (0.51)
+
+**CF-02 (Confusable (T2 vs T3)): What does error E4 mean on the Thermostat T3?**
+
+- What went wrong: The right page was cited, but only 67% of the statements in the answer are supported by the retrieved passages (RAGAS faithfulness).
+- Note: Flagged by the automatic judge only: the correct page was cited and every key fact is in the answer. Check it by hand before treating it as a real error.
+- Expected source: Product Guide - Lumora Thermostat T3.pdf p.5
+- Assistant's answer: "On the Thermostat T3, error E4 refers to a humidity sensor fault. The recommended action is to power-cycle the device; if the issue persists, a warranty claim should be initiated."
+- Cited: Product Guide - Lumora Thermostat T3.pdf p.5
+- Top retrieved: Product Guide - Lumora Thermostat T3.pdf p.5 (0.69); Product Guide - Lumora Thermostat T2.pdf p.6 (0.64); Product Guide - Lumora Thermostat T3.pdf p.5 (0.64)
 
 
 ### Risks and near misses
@@ -68,26 +79,26 @@ The 20 questions are based on facts in the sample documents: 10 single facts (nu
 
 | ID | Question | Outcome | Cited | Key facts | Top score | Faith. | Relev. | Ctx prec. | Ctx rec. | Latency | Cost |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| SF-01 | Who has to approve a refund of $800 on a single order? | Answered | SOP - Returns and Refunds.pdf p.4; SOP - Returns and Refunds.pdf p.3 | 1/1 | 0.60 | 1.00 | 0.84 | 0.68 | 1.00 | 3.9 s | $0.00045 |
-| SF-02 | What does error code E7 mean on the Thermostat T2? | Answered | Product Guide - Lumora Thermostat T2.pdf p.6 | 2/2 | 0.78 | 1.00 | 0.99 | 0.70 | 1.00 | 3.3 s | $0.00036 |
-| SF-03 | How do I factory reset a Lumora Thermostat T2? | Answered | Product Guide - Lumora Thermostat T2.pdf p.5 | 2/2 | 0.67 | 1.00 | 0.98 | 0.25 | 1.00 | 3.7 s | $0.00055 |
-| SF-04 | How long do customers have to return a product they bought directly from Lumora? | Answered | SOP - Returns and Refunds.pdf p.1 | 2/2 | 0.66 | 1.00 | 0.85 | 0.37 | 1.00 | 3.3 s | $0.00050 |
-| SF-05 | What are the first response and resolution targets for a P1 critical ticket? | Answered | SOP - Ticket Escalation.pdf p.1 | 2/2 | 0.60 | 1.00 | 0.97 | 0.45 | 1.00 | 2.6 s | $0.00046 |
-| SF-06 | What format do RMA numbers use, and how long is an RMA valid? | Answered | SOP - RMA Process.pdf p.1 | 2/2 | 0.66 | 1.00 | 0.96 | 0.83 | 1.00 | 3.1 s | $0.00050 |
-| SF-07 | How many failed sign-in attempts lock a Lumora account, and for how long? | Answered | FAQ - App and Account.pdf p.1 | 2/2 | 0.55 | 1.00 | 0.62 | 1.00 | 1.00 | 2.7 s | $0.00051 |
-| SF-08 | How much does a Lumora Plus subscription cost? | Answered | FAQ - Billing and Subscriptions.pdf p.3 | 2/2 | 0.70 | 1.00 | 0.89 | 1.00 | 1.00 | 2.9 s | $0.00050 |
-| SF-09 | Does a T2 customer without a C-wire have to pay for the Power Extender Kit PEK-1? | Answered, low faithfulness | Product Guide - Lumora Thermostat T2.pdf p.4 | 2/2 | 0.62 | 0.67 | 0.84 | 0.67 | 1.00 | 3.3 s | $0.00042 |
-| SF-10 | How quickly must the Safety Officer be notified about a safety case? | Answered | SOP - Ticket Escalation.pdf p.3 | 1/1 | 0.60 | 1.00 | 0.98 | 1.00 | 1.00 | 2.5 s | $0.00017 |
-| CP-01 | In which cases is a C-wire mandatory for the Thermostat T3? | Answered | Product Guide - Lumora Thermostat T3.pdf p.4 | 3/3 | 0.68 | 1.00 | 0.96 | 0.71 | 1.00 | 3.3 s | $0.00047 |
-| CP-02 | How does the holiday return extension work, and which orders are excluded? | Answered | SOP - Returns and Refunds.pdf p.1; SOP - Returns and Refunds.pdf p.2 | 5/5 | 0.42 | 1.00 | 0.60 | 1.00 | 1.00 | 3.9 s | $0.00026 |
-| CP-03 | List all refund approval levels by refund amount per order. | Answered | SOP - Returns and Refunds.pdf p.4; SOP - Returns and Refunds.pdf p.3 | 5/5 | 0.55 | 1.00 | 0.89 | 1.00 | 1.00 | 4.1 s | $0.00039 |
-| CF-01 | How long is the warranty on the Thermostat T3? | Answered | Policy - Limited Warranty.pdf p.2; Product Guide - Lumora Thermostat T3.pdf p.7 | 1/1 | 0.69 | 1.00 | 0.97 | 0.95 | 1.00 | 3.8 s | $0.00054 |
-| CF-02 | What does error E4 mean on the Thermostat T3? | Answered | Product Guide - Lumora Thermostat T3.pdf p.5 | 1/1 | 0.69 | 1.00 | 0.99 | 0.72 | 0.50 | 3.3 s | $0.00037 |
-| OOS-01 | Who is the CEO of Lumora Home Systems? | Refused (correct) | - | - | 0.53 | - | - | - | - | 2.7 s | $0.00047 |
-| OOS-02 | How do I make pizza dough at home? | Refused (correct) | - | - | 0.15 | - | - | - | - | 1.4 s | $0.00000 |
-| OOS-03 | Does the Thermostat T3 work with Apple HomeKit? | Refused (correct) | - | - | 0.58 | - | - | - | - | 3.8 s | $0.00044 |
-| OOS-04 | What was Lumora's total revenue last year? | Refused (correct) | - | - | 0.51 | - | - | - | - | 2.0 s | $0.00048 |
-| OOS-05 | Write a Python function that sorts a list of numbers. | Refused (correct) | - | - | 0.15 | - | - | - | - | 1.0 s | $0.00000 |
+| SF-01 | Who has to approve a refund of $800 on a single order? | Answered | SOP - Returns and Refunds.pdf p.4; SOP - Returns and Refunds.pdf p.3 | 1/1 | 0.60 | 1.00 | 0.84 | 0.68 | 1.00 | 5.6 s | $0.00045 |
+| SF-02 | What does error code E7 mean on the Thermostat T2? | Answered | Product Guide - Lumora Thermostat T2.pdf p.6 | 2/2 | 0.78 | 1.00 | 0.99 | 0.70 | 1.00 | 5.2 s | $0.00036 |
+| SF-03 | How do I factory reset a Lumora Thermostat T2? | Answered | Product Guide - Lumora Thermostat T2.pdf p.5 | 2/2 | 0.67 | 1.00 | 0.98 | 0.25 | 1.00 | 5.5 s | $0.00055 |
+| SF-04 | How long do customers have to return a product they bought directly from Lumora? | Answered | SOP - Returns and Refunds.pdf p.1 | 2/2 | 0.66 | 0.75 | 0.84 | 0.37 | 1.00 | 5.7 s | $0.00050 |
+| SF-05 | What are the first response and resolution targets for a P1 critical ticket? | Answered | SOP - Ticket Escalation.pdf p.1 | 2/2 | 0.60 | 1.00 | 0.97 | 0.45 | 1.00 | 5.0 s | $0.00046 |
+| SF-06 | What format do RMA numbers use, and how long is an RMA valid? | Answered | SOP - RMA Process.pdf p.1 | 2/2 | 0.66 | 1.00 | 0.96 | 0.83 | 1.00 | 4.7 s | $0.00050 |
+| SF-07 | How many failed sign-in attempts lock a Lumora account, and for how long? | Answered | FAQ - App and Account.pdf p.1 | 2/2 | 0.55 | 1.00 | 0.62 | 1.00 | 1.00 | 7.1 s | $0.00051 |
+| SF-08 | How much does a Lumora Plus subscription cost? | Answered | FAQ - Billing and Subscriptions.pdf p.3 | 2/2 | 0.70 | 1.00 | 0.89 | 1.00 | 1.00 | 4.4 s | $0.00050 |
+| SF-09 | Does a T2 customer without a C-wire have to pay for the Power Extender Kit PEK-1? | Answered, low faithfulness | Product Guide - Lumora Thermostat T2.pdf p.4 | 2/2 | 0.62 | 0.67 | 0.84 | 0.67 | 1.00 | 4.1 s | $0.00042 |
+| SF-10 | How quickly must the Safety Officer be notified about a safety case? | Answered | SOP - Ticket Escalation.pdf p.3 | 1/1 | 0.60 | 1.00 | 0.97 | 1.00 | 1.00 | 6.5 s | $0.00017 |
+| CP-01 | In which cases is a C-wire mandatory for the Thermostat T3? | Answered | Product Guide - Lumora Thermostat T3.pdf p.4 | 3/3 | 0.68 | 1.00 | 0.96 | 0.97 | 1.00 | 4.1 s | $0.00047 |
+| CP-02 | How does the holiday return extension work, and which orders are excluded? | Answered | SOP - Returns and Refunds.pdf p.1; SOP - Returns and Refunds.pdf p.2 | 5/5 | 0.42 | 1.00 | 0.60 | 1.00 | 1.00 | 6.7 s | $0.00026 |
+| CP-03 | List all refund approval levels by refund amount per order. | Answered | SOP - Returns and Refunds.pdf p.4; SOP - Returns and Refunds.pdf p.3 | 5/5 | 0.55 | 0.86 | 0.70 | 1.00 | 1.00 | 6.1 s | $0.00038 |
+| CF-01 | How long is the warranty on the Thermostat T3? | Answered | Product Guide - Lumora Thermostat T3.pdf p.7; Policy - Limited Warranty.pdf p.2 | 1/1 | 0.69 | 1.00 | 0.97 | 0.95 | 1.00 | 4.7 s | $0.00054 |
+| CF-02 | What does error E4 mean on the Thermostat T3? | Answered, low faithfulness | Product Guide - Lumora Thermostat T3.pdf p.5 | 1/1 | 0.69 | 0.67 | 0.99 | 0.72 | 0.50 | 5.5 s | $0.00037 |
+| OOS-01 | Who is the CEO of Lumora Home Systems? | Refused (correct) | - | - | 0.53 | - | - | - | - | 3.7 s | $0.00047 |
+| OOS-02 | How do I make pizza dough at home? | Refused (correct) | - | - | 0.15 | - | - | - | - | 1.0 s | $0.00000 |
+| OOS-03 | Does the Thermostat T3 work with Apple HomeKit? | Refused (correct) | - | - | 0.58 | - | - | - | - | 3.9 s | $0.00044 |
+| OOS-04 | What was Lumora's total revenue last year? | Refused (correct) | - | - | 0.51 | - | - | - | - | 3.6 s | $0.00048 |
+| OOS-05 | Write a Python function that sorts a list of numbers. | Refused (correct) | - | - | 0.15 | - | - | - | - | 1.7 s | $0.00000 |
 
 Faith. = faithfulness, Relev. = answer relevancy, Ctx prec. / Ctx rec. = context precision / recall (RAGAS, 0-1; '-' = not scored, e.g. refusals). Top score = cosine similarity of the best retrieved passage.
 
@@ -110,7 +121,7 @@ Faith. = faithfulness, Relev. = answer relevancy, Ctx prec. / Ctx rec. = context
 
 **SF-04. How long do customers have to return a product they bought directly from Lumora?**
 
-- Answer: Customers may return any product bought directly from Lumora within 30 calendar days of the delivery date, for any reason. If the delivery is between November 15 and December 31, returns can be made until January 31 of the following year, or within the standard 30 days if that is later.
+- Answer: Customers may return any product bought directly from Lumora within 30 calendar days of the delivery date, for any reason. If the delivery is between November 15 and December 31, the return can be made until January 31 of the following year, or within the standard 30 days if that is later.
 - Reference: 30 calendar days, counted from the delivery date shown in OMS (not the order date). The return is on time if the RMA is created within the window.
 
 **SF-05. What are the first response and resolution targets for a P1 critical ticket?**
@@ -135,7 +146,7 @@ Faith. = faithfulness, Relev. = answer relevancy, Ctx prec. / Ctx rec. = context
 
 **SF-09. Does a T2 customer without a C-wire have to pay for the Power Extender Kit PEK-1?**
 
-- Answer: A T2 customer without a C-wire can receive the Power Extender Kit PEK-1 free of charge if they request it within 60 days of delivery. After that, it costs $24.99.
+- Answer: A T2 customer without a C-wire can receive the Power Extender Kit PEK-1 free of charge if they request it within 60 days of delivery. After that period, it costs $24.99.
 - Reference: The PEK-1 is free for T2 customers who request it within 60 days of delivery; after that it costs $24.99. Only Tier 2 Technical Support may authorize a free PEK-1 outside the 60-day window.
 
 **SF-10. How quickly must the Safety Officer be notified about a safety case?**
@@ -150,12 +161,12 @@ Faith. = faithfulness, Relev. = answer relevancy, Ctx prec. / Ctx rec. = context
 
 **CP-02. How does the holiday return extension work, and which orders are excluded?**
 
-- Answer: Orders delivered between November 15 and December 31 can be returned until January 31 of the following year, or within the standard 30 days if that is later. This extension applies to both change-of-mind and defective returns, but does not apply to orders placed by business accounts or to orders containing more than five units of the same product.
+- Answer: Orders delivered between November 15 and December 31 can be returned until January 31 of the following year, or within the standard 30 days if that is later. This holiday extension applies to both change-of-mind and defective returns, but it does not apply to orders placed by business accounts or to orders containing more than five units of the same product.
 - Reference: Orders delivered between November 15 and December 31 can be returned until January 31 of the following year (or within the standard 30 days if that is later). The extension does not apply to business accounts or to orders with more than five units of the same product. Agents select the reason modifier HOL in OMS.
 
 **CP-03. List all refund approval levels by refund amount per order.**
 
-- Answer: Refund approval levels by refund amount per order are as follows: 1. Up to $250.00 - Customer Care agent (Tier 1) - Approve in OMS directly. 2. $250.01 to $1,000.00 - Team Lead - Approval request in OMS; Team Lead responds within 4 business hours. 3. $1,000.01 to $5,000.00 - Customer Care Manager - Attach order history and ticket summary. 4. Above $5,000.00 - Customer Care Manager and Finance Controller - Both approvals required before the refund is released.
+- Answer: 1. Up to $250.00: Customer Care agent (Tier 1) - Approve in OMS directly. 2. $250.01 to $1,000.00: Team Lead - Approval request in OMS; Team Lead responds within 4 business hours. 3. $1,000.01 to $5,000.00: Customer Care Manager - Both approvals required before the refund is released. 4. Above $5,000.00: Customer Care Manager and Finance Controller - Both approvals required before the refund is released.
 - Reference: Up to $250.00: the Customer Care agent (Tier 1). $250.01 to $1,000.00: a Team Lead. $1,000.01 to $5,000.00: the Customer Care Manager. Above $5,000.00: both the Customer Care Manager and the Finance Controller.
 
 **CF-01. How long is the warranty on the Thermostat T3?**

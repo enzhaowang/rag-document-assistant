@@ -76,7 +76,7 @@
     "in_context": false
    }
   ],
-  "latency_ms": 3887,
+  "latency_ms": 5556,
   "input_tokens": 2690,
   "output_tokens": 82,
   "embedding_tokens": 14,
@@ -167,14 +167,14 @@
     "in_context": true
    }
   ],
-  "latency_ms": 3331,
+  "latency_ms": 5191,
   "input_tokens": 2090,
   "output_tokens": 85,
   "embedding_tokens": 14,
   "cost_usd": 0.00036478,
   "scores": {
    "faithfulness": 1.0,
-   "answer_relevancy": 0.9909779474134582,
+   "answer_relevancy": 0.9909837700215086,
    "context_precision": 0.699999999965,
    "context_recall": 1.0
   },
@@ -258,7 +258,7 @@
     "in_context": true
    }
   ],
-  "latency_ms": 3740,
+  "latency_ms": 5482,
   "input_tokens": 3307,
   "output_tokens": 93,
   "embedding_tokens": 13,
@@ -293,7 +293,7 @@
    "30 calendar days|30 days",
    "delivery"
   ],
-  "answer": "Customers may return any product bought directly from Lumora within 30 calendar days of the delivery date, for any reason. If the delivery is between November 15 and December 31, returns can be made until January 31 of the following year, or within the standard 30 days if that is later.",
+  "answer": "Customers may return any product bought directly from Lumora within 30 calendar days of the delivery date, for any reason. If the delivery is between November 15 and December 31, the return can be made until January 31 of the following year, or within the standard 30 days if that is later.",
   "answered": true,
   "refusal_reason": null,
   "standalone_question": "How long do customers have to return a product they bought directly from Lumora?",
@@ -349,14 +349,14 @@
     "in_context": true
    }
   ],
-  "latency_ms": 3308,
+  "latency_ms": 5704,
   "input_tokens": 2946,
-  "output_tokens": 91,
+  "output_tokens": 92,
   "embedding_tokens": 16,
-  "cost_usd": 0.00049682,
+  "cost_usd": 0.0004974199999999999,
   "scores": {
-   "faithfulness": 1.0,
-   "answer_relevancy": 0.849476201539156,
+   "faithfulness": 0.75,
+   "answer_relevancy": 0.8425968244107579,
    "context_precision": 0.36666666664833336,
    "context_recall": 1.0
   },
@@ -424,7 +424,7 @@
    {
     "document": "SOP - Ticket Escalation.pdf",
     "page": 4,
-    "score": 0.5011,
+    "score": 0.501,
     "in_context": true
    },
    {
@@ -440,7 +440,7 @@
     "in_context": true
    }
   ],
-  "latency_ms": 2565,
+  "latency_ms": 4997,
   "input_tokens": 2872,
   "output_tokens": 53,
   "embedding_tokens": 15,
@@ -531,14 +531,14 @@
     "in_context": true
    }
   ],
-  "latency_ms": 3052,
+  "latency_ms": 4670,
   "input_tokens": 3040,
   "output_tokens": 73,
   "embedding_tokens": 17,
   "cost_usd": 0.0005001399999999999,
   "scores": {
    "faithfulness": 1.0,
-   "answer_relevancy": 0.9617016758477935,
+   "answer_relevancy": 0.9617138943123976,
    "context_precision": 0.8333333332916666,
    "context_recall": 1.0
   },
@@ -622,14 +622,14 @@
     "in_context": true
    }
   ],
-  "latency_ms": 2691,
+  "latency_ms": 7052,
   "input_tokens": 3226,
   "output_tokens": 43,
   "embedding_tokens": 17,
   "cost_usd": 0.00051004,
   "scores": {
    "faithfulness": 1.0,
-   "answer_relevancy": 0.6162629172620891,
+   "answer_relevancy": 0.6162861702876824,
    "context_precision": 0.9999999999,
    "context_recall": 1.0
   },
@@ -713,14 +713,14 @@
     "in_context": true
    }
   ],
-  "latency_ms": 2902,
+  "latency_ms": 4396,
   "input_tokens": 3091,
   "output_tokens": 55,
   "embedding_tokens": 10,
   "cost_usd": 0.00049685,
   "scores": {
    "faithfulness": 1.0,
-   "answer_relevancy": 0.8881333644238333,
+   "answer_relevancy": 0.8881422529363313,
    "context_precision": 0.9999999999,
    "context_recall": 1.0
   },
@@ -748,7 +748,7 @@
    "60 days",
    "$24.99"
   ],
-  "answer": "A T2 customer without a C-wire can receive the Power Extender Kit PEK-1 free of charge if they request it within 60 days of delivery. After that, it costs $24.99.",
+  "answer": "A T2 customer without a C-wire can receive the Power Extender Kit PEK-1 free of charge if they request it within 60 days of delivery. After that period, it costs $24.99.",
   "answered": true,
   "refusal_reason": null,
   "standalone_question": "Does a T2 customer without a C-wire have to pay for the Power Extender Kit PEK-1?",
@@ -804,14 +804,14 @@
     "in_context": true
    }
   ],
-  "latency_ms": 3324,
+  "latency_ms": 4075,
   "input_tokens": 2507,
-  "output_tokens": 76,
+  "output_tokens": 77,
   "embedding_tokens": 24,
-  "cost_usd": 0.00042213000000000005,
+  "cost_usd": 0.00042273,
   "scores": {
    "faithfulness": 0.6666666666666666,
-   "answer_relevancy": 0.8434453555241892,
+   "answer_relevancy": 0.8376390101856518,
    "context_precision": 0.6666666666333333,
    "context_recall": 1.0
   },
@@ -889,14 +889,14 @@
     "in_context": false
    }
   ],
-  "latency_ms": 2507,
+  "latency_ms": 6468,
   "input_tokens": 919,
   "output_tokens": 52,
   "embedding_tokens": 13,
   "cost_usd": 0.00016930999999999996,
   "scores": {
    "faithfulness": 1.0,
-   "answer_relevancy": 0.9779140956260761,
+   "answer_relevancy": 0.9692178692839558,
    "context_precision": 0.9999999999,
    "context_recall": 1.0
   },
@@ -985,7 +985,7 @@
     "in_context": true
    }
   ],
-  "latency_ms": 3278,
+  "latency_ms": 4078,
   "input_tokens": 2781,
   "output_tokens": 95,
   "embedding_tokens": 16,
@@ -993,7 +993,7 @@
   "scores": {
    "faithfulness": 1.0,
    "answer_relevancy": 0.9573745475334657,
-   "context_precision": 0.7099999999858001,
+   "context_precision": 0.9666666666473333,
    "context_recall": 1.0
   },
   "score_errors": {},
@@ -1027,7 +1027,7 @@
    "business account",
    "more than five|more than 5"
   ],
-  "answer": "Orders delivered between November 15 and December 31 can be returned until January 31 of the following year, or within the standard 30 days if that is later. This extension applies to both change-of-mind and defective returns, but does not apply to orders placed by business accounts or to orders containing more than five units of the same product.",
+  "answer": "Orders delivered between November 15 and December 31 can be returned until January 31 of the following year, or within the standard 30 days if that is later. This holiday extension applies to both change-of-mind and defective returns, but it does not apply to orders placed by business accounts or to orders containing more than five units of the same product.",
   "answered": true,
   "refusal_reason": null,
   "standalone_question": "How does the holiday return extension work, and which orders are excluded?",
@@ -1083,11 +1083,11 @@
     "in_context": false
    }
   ],
-  "latency_ms": 3859,
+  "latency_ms": 6728,
   "input_tokens": 1298,
-  "output_tokens": 113,
+  "output_tokens": 115,
   "embedding_tokens": 14,
-  "cost_usd": 0.00026277999999999995,
+  "cost_usd": 0.00026398,
   "scores": {
    "faithfulness": 1.0,
    "answer_relevancy": 0.5969357842014222,
@@ -1121,11 +1121,11 @@
   "key_facts": [
    "$250",
    "Team Lead",
-   "$5000",
+   "above $5000|over $5000|more than $5000|exceeding $5000|$5000.01",
    "Customer Care Manager",
    "Finance Controller"
   ],
-  "answer": "Refund approval levels by refund amount per order are as follows:\n\n1. Up to $250.00 - Customer Care agent (Tier 1) - Approve in OMS directly.\n2. $250.01 to $1,000.00 - Team Lead - Approval request in OMS; Team Lead responds within 4 business hours.\n3. $1,000.01 to $5,000.00 - Customer Care Manager - Attach order history and ticket summary.\n4. Above $5,000.00 - Customer Care Manager and Finance Controller - Both approvals required before the refund is released.",
+  "answer": "1. Up to $250.00: Customer Care agent (Tier 1) - Approve in OMS directly.\n2. $250.01 to $1,000.00: Team Lead - Approval request in OMS; Team Lead responds within 4 business hours.\n3. $1,000.01 to $5,000.00: Customer Care Manager - Both approvals required before the refund is released.\n4. Above $5,000.00: Customer Care Manager and Finance Controller - Both approvals required before the refund is released.",
   "answered": true,
   "refusal_reason": null,
   "standalone_question": "List all refund approval levels by refund amount per order.",
@@ -1148,13 +1148,13 @@
    {
     "document": "SOP - Returns and Refunds.pdf",
     "page": 4,
-    "score": 0.5525,
+    "score": 0.5526,
     "in_context": true
    },
    {
     "document": "SOP - Returns and Refunds.pdf",
     "page": 3,
-    "score": 0.523,
+    "score": 0.5231,
     "in_context": true
    },
    {
@@ -1172,24 +1172,24 @@
    {
     "document": "SOP - RMA Process.pdf",
     "page": 1,
-    "score": 0.3391,
+    "score": 0.3392,
     "in_context": false
    },
    {
     "document": "SOP - Warranty Claims.pdf",
     "page": 5,
-    "score": 0.3384,
+    "score": 0.3385,
     "in_context": false
    }
   ],
-  "latency_ms": 4130,
+  "latency_ms": 6089,
   "input_tokens": 1922,
-  "output_tokens": 168,
+  "output_tokens": 156,
   "embedding_tokens": 11,
-  "cost_usd": 0.0003893200000000001,
+  "cost_usd": 0.00038212,
   "scores": {
-   "faithfulness": 1.0,
-   "answer_relevancy": 0.8904155939155226,
+   "faithfulness": 0.8571428571428571,
+   "answer_relevancy": 0.7006889570456688,
    "context_precision": 0.9999999999666667,
    "context_recall": 1.0
   },
@@ -1206,12 +1206,16 @@
   "ground_truth": "The Thermostat T3 has a 3-year (36-month) limited warranty from the date of delivery, one year longer than the T2. It can be extended to 4 years when installed by a Lumora Certified Installer, under the conditions of the Limited Warranty Policy.",
   "expected_sources": [
    "Product Guide - Lumora Thermostat T3.pdf p.7",
-   "Policy - Limited Warranty.pdf p.1"
+   "Policy - Limited Warranty.pdf p.1,2"
   ],
   "expected_pages": [
    [
     "Policy - Limited Warranty.pdf",
     1
+   ],
+   [
+    "Policy - Limited Warranty.pdf",
+    2
    ],
    [
     "Product Guide - Lumora Thermostat T3.pdf",
@@ -1227,12 +1231,12 @@
   "standalone_question": "How long is the warranty on the Thermostat T3?",
   "cited_sources": [
    [
-    "Policy - Limited Warranty.pdf",
-    2
-   ],
-   [
     "Product Guide - Lumora Thermostat T3.pdf",
     7
+   ],
+   [
+    "Policy - Limited Warranty.pdf",
+    2
    ]
   ],
   "contexts": [
@@ -1281,7 +1285,7 @@
     "in_context": true
    }
   ],
-  "latency_ms": 3823,
+  "latency_ms": 4715,
   "input_tokens": 3219,
   "output_tokens": 91,
   "embedding_tokens": 12,
@@ -1343,25 +1347,25 @@
    {
     "document": "Product Guide - Lumora Thermostat T2.pdf",
     "page": 6,
-    "score": 0.6434,
+    "score": 0.6433,
     "in_context": true
    },
    {
     "document": "Product Guide - Lumora Thermostat T3.pdf",
     "page": 5,
-    "score": 0.6367,
+    "score": 0.6366,
     "in_context": true
    },
    {
     "document": "Product Guide - Lumora Thermostat T2.pdf",
     "page": 5,
-    "score": 0.6363,
+    "score": 0.6362,
     "in_context": true
    },
    {
     "document": "Product Guide - Lumora Thermostat T3.pdf",
     "page": 6,
-    "score": 0.6149,
+    "score": 0.6148,
     "in_context": true
    },
    {
@@ -1371,21 +1375,21 @@
     "in_context": true
    }
   ],
-  "latency_ms": 3345,
+  "latency_ms": 5482,
   "input_tokens": 2089,
   "output_tokens": 90,
   "embedding_tokens": 13,
   "cost_usd": 0.00036760999999999993,
   "scores": {
-   "faithfulness": 1.0,
-   "answer_relevancy": 0.9855947367969801,
+   "faithfulness": 0.6666666666666666,
+   "answer_relevancy": 0.9855878435400766,
    "context_precision": 0.7222222221981481,
    "context_recall": 0.5
   },
   "score_errors": {},
   "error": null,
-  "diagnosis": "ok",
-  "diagnosis_detail": "Answered with a correct citation."
+  "diagnosis": "low_faithfulness",
+  "diagnosis_detail": "The right page was cited, but only 67% of the statements in the answer are supported by the retrieved passages (RAGAS faithfulness)."
  },
  {
   "id": "OOS-01",
@@ -1447,7 +1451,7 @@
     "in_context": true
    }
   ],
-  "latency_ms": 2690,
+  "latency_ms": 3712,
   "input_tokens": 3089,
   "output_tokens": 15,
   "embedding_tokens": 10,
@@ -1511,7 +1515,7 @@
     "in_context": false
    }
   ],
-  "latency_ms": 1441,
+  "latency_ms": 1021,
   "input_tokens": 0,
   "output_tokens": 0,
   "embedding_tokens": 9,
@@ -1548,7 +1552,7 @@
    {
     "document": "Product Guide - Lumora Thermostat T3.pdf",
     "page": 8,
-    "score": 0.5762,
+    "score": 0.5763,
     "in_context": true
    },
    {
@@ -1560,29 +1564,29 @@
    {
     "document": "Product Guide - Lumora Thermostat T3.pdf",
     "page": 4,
-    "score": 0.5116,
+    "score": 0.5117,
     "in_context": true
    },
    {
     "document": "Product Guide - Lumora Thermostat T3.pdf",
     "page": 7,
-    "score": 0.5039,
+    "score": 0.504,
     "in_context": true
    },
    {
     "document": "Product Guide - Lumora Thermostat T3.pdf",
     "page": 5,
-    "score": 0.4941,
+    "score": 0.4942,
     "in_context": true
    },
    {
     "document": "Product Guide - Lumora Thermostat T2.pdf",
     "page": 8,
-    "score": 0.4926,
+    "score": 0.4927,
     "in_context": true
    }
   ],
-  "latency_ms": 3750,
+  "latency_ms": 3917,
   "input_tokens": 2858,
   "output_tokens": 15,
   "embedding_tokens": 12,
@@ -1619,13 +1623,13 @@
    {
     "document": "FAQ - Billing and Subscriptions.pdf",
     "page": 1,
-    "score": 0.514,
+    "score": 0.5141,
     "in_context": true
    },
    {
     "document": "FAQ - Billing and Subscriptions.pdf",
     "page": 2,
-    "score": 0.5088,
+    "score": 0.5087,
     "in_context": true
    },
    {
@@ -1649,11 +1653,11 @@
    {
     "document": "FAQ - Shipping and Delivery.pdf",
     "page": 1,
-    "score": 0.4519,
+    "score": 0.4518,
     "in_context": true
    }
   ],
-  "latency_ms": 2032,
+  "latency_ms": 3609,
   "input_tokens": 3133,
   "output_tokens": 15,
   "embedding_tokens": 10,
@@ -1717,7 +1721,7 @@
     "in_context": false
    }
   ],
-  "latency_ms": 1004,
+  "latency_ms": 1723,
   "input_tokens": 0,
   "output_tokens": 0,
   "embedding_tokens": 11,

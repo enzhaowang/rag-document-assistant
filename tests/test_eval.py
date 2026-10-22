@@ -13,7 +13,7 @@ from langchain_core.documents import Document
 from app.config import Settings
 from app.rag.schemas import ChatResult, Source
 from app.retrieval.retriever import RetrievedChunk
-from eval import ragas_scoring, runner
+from eval import ragas_scoring, runner, tune
 from eval.dataset import Category, EvalQuestion, load_questions
 from eval.metrics import (
     Diagnosis,
@@ -26,7 +26,15 @@ from eval.metrics import (
     diagnose,
     target_checks,
 )
-from eval.report import RunInfo, load_run, load_tuning, render_summary, write_reports
+from eval.report import (
+    JUDGE_ONLY_NOTE,
+    RunInfo,
+    load_run,
+    load_tuning,
+    render_summary,
+    reviewed_ids,
+    write_reports,
+)
 from eval.tune import _chunkings, build_grid, merge_runs, summarize_runs
 from scripts.check_retrieval import parse_facts
 
@@ -490,3 +498,65 @@ def test_summarize_runs_averages_metrics_and_counts_failures() -> None:
     assert summary["avg_cost_usd"] == pytest.approx(0.003)
     assert summary["failed_questions"] == "SF-01 (1/2)"
     assert summarize_runs([{"passed": 18}], [["A", "B"]])["failed_questions"] == "A B"
+
+
+def _diagnosed(result: QuestionResult, question_id: str) -> QuestionResult:
+    result.id = question_id
+    result.diagnosis, result.diagnosis_detail = diagnose(result, 0.35)
+    return result
+
+
+def test_reviewed_ids_finds_question_ids_in_notes() -> None:
+    notes = "Table (CP-03, and SF-01 in some runs). False alarms: SF-09, CF-02. OOS-05 ok."
+    assert reviewed_ids(notes) == {"CP-03", "SF-01", "SF-09", "CF-02", "OOS-05"}
+
+
+def test_summary_flags_failures_not_covered_by_the_review_notes() -> None:
+    results = [
+        _diagnosed(make_result(cited=[(T3, 1)]), "SF-01"),  # covered by the notes
+        _diagnosed(make_result(scores={"faithfulness": 0.5}), "CF-02"),  # not covered
+        _diagnosed(make_result(scores={"faithfulness": 1.0}), "SF-02"),  # passed
+    ]
+    text = render_summary(
+        results, aggregate(results), _info(), review_notes="- SF-01 cites page 4 sometimes."
+    )
+    review = text[text.index("### Manual review") : text.index("## Recommendations")]
+    assert "SF-01 cites page 4 sometimes." in review
+    assert "Not yet reviewed by hand: CF-02 (low faithfulness, judge only)." in review
+    unreviewed = next(line for line in review.splitlines() if "Not yet reviewed" in line)
+    assert "SF-01" not in unreviewed and "SF-02" not in unreviewed
+    assert JUDGE_ONLY_NOTE in text  # judge-only failure is labelled in the failure analysis
+    assert "flagged only by the automatic faithfulness judge" in text  # and in the bottom line
+
+
+def test_summary_has_no_unreviewed_line_when_notes_cover_every_failure() -> None:
+    results = [_diagnosed(make_result(cited=[(T3, 1)]), "SF-01")]
+    text = render_summary(results, aggregate(results), _info(), review_notes="SF-01: known.")
+    assert "Not yet reviewed by hand" not in text
+    assert JUDGE_ONLY_NOTE not in text
+
+
+def test_tune_keeps_completed_configs_when_a_later_index_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def prepare(settings: Settings, base: Settings) -> object:
+        if settings.chunk_size_tokens == 800:
+            raise runner.IndexNotReadyError("index not ready")
+        return object()
+
+    def run(questions: Any, settings: Settings, store: object, **kwargs: Any) -> Any:
+        return [
+            _diagnosed(make_result(), "SF-01"),
+            _diagnosed(make_result(should_answer=False, answered=False), "OOS-01"),
+        ]
+
+    monkeypatch.setattr(tune, "get_settings", lambda: _settings(tmp_path))
+    monkeypatch.setattr(tune, "prepare_vectorstore", prepare)
+    monkeypatch.setattr(tune, "run_questions", run)
+    out = tmp_path / "tuning.csv"
+    argv = ["--chunk-sizes", "500:80,800:120", "--top-ks", "6", "--thresholds", "0.3,0.4"]
+    assert tune.main([*argv, "--out", str(out)]) == 2
+
+    saved = load_tuning(out)
+    assert saved is not None
+    assert [(r["chunk_size"], r["threshold"]) for r in saved] == [(500, 0.3), (500, 0.4)]
