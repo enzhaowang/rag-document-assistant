@@ -293,6 +293,47 @@ def test_colliding_slugs_are_disambiguated(tmp_path: Path, small_settings: Setti
     assert len({cid.split("__")[0] for cid in ids}) == 2
 
 
+def test_same_file_name_in_subdirectories_gets_distinct_chunk_ids(
+    tmp_path: Path, small_settings: Settings
+) -> None:
+    (tmp_path / "a").mkdir()
+    (tmp_path / "b").mkdir()
+    build_sample_pdf(tmp_path / "a" / "FAQ.pdf", title="Returns FAQ")
+    build_sample_pdf(tmp_path / "b" / "FAQ.pdf", title="Shipping FAQ")
+    build_sample_pdf(tmp_path / "Unique Guide.pdf")
+
+    chunks = load_and_chunk(tmp_path, small_settings)
+    ids = [c.metadata["chunk_id"] for c in chunks]
+    assert len(ids) == len(set(ids))
+    prefixes = {cid.split("__")[0] for cid in ids}
+    assert len(prefixes) == 3
+    assert "unique-guide" in prefixes  # non-colliding slugs are left unchanged
+    assert ids == [c.metadata["chunk_id"] for c in load_and_chunk(tmp_path, small_settings)]
+
+
+def test_unreadable_file_is_skipped_not_fatal(
+    pdf_dir: Path, small_settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import app.ingestion.loader as loader
+
+    build_sample_pdf(pdf_dir / "no-access.pdf")
+    real_sha256 = loader.file_sha256
+
+    def fake_sha256(path: Path) -> str:
+        if path.name == "no-access.pdf":
+            raise PermissionError(13, "Permission denied", str(path))
+        return real_sha256(path)
+
+    monkeypatch.setattr(loader, "file_sha256", fake_sha256)
+    with pytest.raises(PdfLoadError, match="cannot read file"):
+        load_pdf(pdf_dir / "no-access.pdf")
+
+    result = run(pdf_dir, small_settings)
+    assert result.files == 1
+    assert [s.source for s in result.skipped] == ["no-access.pdf"]
+    assert {c.metadata["source"] for c in result.chunks} == {"SOP - Returns Handbook.pdf"}
+
+
 def test_missing_directory_raises(tmp_path: Path, small_settings: Settings) -> None:
     with pytest.raises(FileNotFoundError):
         run(tmp_path / "missing", small_settings)

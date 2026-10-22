@@ -64,21 +64,38 @@ class IngestionResult:
         }
 
 
-def _unique_slugs(paths: Sequence[Path]) -> dict[Path, str]:
-    """Map each file to a slug; colliding slugs get a short hash of the file name appended."""
+def _relative_name(path: Path, root: Path) -> str:
+    """Return `path` relative to `root` in POSIX form (the file name if outside `root`)."""
+    try:
+        return path.relative_to(root).as_posix()
+    except ValueError:
+        return path.name
+
+
+def _unique_slugs(paths: Sequence[Path], root: Path) -> dict[Path, str]:
+    """Map each file to a slug derived from its file name.
+
+    Slugs that collide (e.g. `a/FAQ.pdf` and `b/FAQ.pdf`, or `FAQ.pdf` and `faq.pdf`) get a
+    short hash of the path relative to `root` appended, so every file keeps a distinct and
+    deterministic chunk_id prefix. Non-colliding slugs are left unchanged.
+    """
     slugs = {path: slugify(path.name) for path in paths}
     seen: dict[str, int] = {}
     for slug in slugs.values():
         seen[slug] = seen.get(slug, 0) + 1
     for path, slug in slugs.items():
         if seen[slug] > 1:
-            name_hash = hashlib.sha256(path.name.encode("utf-8")).hexdigest()
-            slugs[path] = f"{slug}-{name_hash[:8]}"
+            rel_hash = hashlib.sha256(_relative_name(path, root).encode("utf-8")).hexdigest()
+            slugs[path] = f"{slug}-{rel_hash[:8]}"
     return slugs
 
 
 def run(pdf_dir: Path, settings: Settings | None = None) -> IngestionResult:
-    """Load and chunk every PDF under `pdf_dir`, skipping files that cannot be read."""
+    """Load and chunk every PDF under `pdf_dir`, skipping files that cannot be read.
+
+    Note: chunk metadata `source` is the bare file name, so files with the same name in
+    different subdirectories share a `source` value; their chunk_ids remain distinct.
+    """
     s = settings or get_settings()
     if not pdf_dir.is_dir():
         raise FileNotFoundError(f"PDF directory not found: {pdf_dir}")
@@ -86,17 +103,16 @@ def run(pdf_dir: Path, settings: Settings | None = None) -> IngestionResult:
     paths = find_pdfs(pdf_dir)
     if not paths:
         logger.warning("no PDF files found", extra={"pdf_dir": str(pdf_dir)})
-    slugs = _unique_slugs(paths)
+    slugs = _unique_slugs(paths, pdf_dir)
 
     result = IngestionResult()
     for path in paths:
         try:
             pages = load_pdf(path, root=pdf_dir)
-        except PdfLoadError as exc:
-            logger.warning(
-                "skipping unreadable PDF", extra={"source": path.name, "reason": str(exc)}
-            )
-            result.skipped.append(SkippedFile(source=path.name, reason=str(exc)))
+        except (PdfLoadError, OSError) as exc:
+            source = _relative_name(path, pdf_dir)
+            logger.warning("skipping unreadable PDF", extra={"source": source, "reason": str(exc)})
+            result.skipped.append(SkippedFile(source=source, reason=str(exc)))
             continue
         chunks = chunk_documents(pages, slugs[path], s)
         result.files += 1

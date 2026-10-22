@@ -317,10 +317,13 @@ def load_pdf(path: Path, root: Path | None = None) -> list[Document]:
     section_at_start (the last heading seen on an earlier page, or None).
 
     Raises:
-        PdfLoadError: if the file cannot be opened, is password protected, has no pages
-            or its pages cannot be read.
+        PdfLoadError: if the file cannot be read or opened, is password protected, has no
+            pages or its pages cannot be read.
     """
-    doc_hash = file_sha256(path)
+    try:
+        doc_hash = file_sha256(path)
+    except OSError as exc:
+        raise PdfLoadError(f"cannot read file: {exc}") from exc
     with _open_pdf(path) as pdf:
         doc_title = _collapse((pdf.metadata or {}).get("title") or "") or path.stem
         try:
