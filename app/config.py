@@ -59,6 +59,15 @@ class Settings(BaseSettings):
     retrieval_top_k: int = Field(default=6, gt=0)
     retrieval_score_threshold: float = Field(default=0.35, ge=0.0, le=1.0)
 
+    # LLM calls (chat model): per-request timeout and SDK-level retries with backoff.
+    openai_timeout_seconds: float = Field(default=30.0, gt=0)
+    openai_max_retries: int = Field(default=2, ge=0)
+
+    # RAG chain: token budget for retrieved context sent to the LLM, and how many recent
+    # conversation turns (one user + one assistant message each) are kept as history.
+    rag_max_context_tokens: int = Field(default=3000, gt=0)
+    rag_history_max_turns: int = Field(default=6, ge=0)
+
     # UI -> API
     api_base_url: str = "http://localhost:8080"
 
