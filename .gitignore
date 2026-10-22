@@ -224,3 +224,6 @@ __marimo__/
 docs/ROADMAP.md
 docs/status.json
 docs/progress/
+
+# Local vector store data
+.chroma/

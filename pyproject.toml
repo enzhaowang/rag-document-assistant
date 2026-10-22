@@ -1,0 +1,52 @@
+[project]
+name = "rag-document-assistant"
+version = "0.1.0"
+description = "RAG chatbot over a PDF knowledge base with source citations (LangChain, OpenAI, Chroma, FastAPI, Streamlit)."
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+# Direct dependencies only. Exact, fully resolved versions live in requirements.txt
+# (runtime) and requirements-dev.txt (runtime + dev tools), generated with:
+#   make lock
+dependencies = [
+    "langchain>=1.4,<2",
+    "langchain-core>=1.6,<2",
+    "langchain-openai>=1.7,<2",
+    "langchain-chroma>=1.1,<2",
+    "langchain-text-splitters>=1.1,<2",
+    "tiktoken>=0.14,<1",
+    "pymupdf>=2.0,<3",
+    "chromadb>=1.5,<2",
+    "fastapi>=0.159,<1",
+    "uvicorn[standard]>=0.54,<1",
+    "pydantic>=2.14,<3",
+    "pydantic-settings>=2.16,<3",
+    "streamlit>=1.66,<2",
+    "httpx>=0.28,<1",
+    "ragas>=0.4.3,<0.5",
+    "pandas>=3.0,<4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.1,<10",
+    "ruff>=0.17,<0.18",
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+extend-exclude = [".chroma", "data"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "SIM"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra"
+markers = [
+    "integration: tests that call real external services such as the OpenAI API (deselect with -m 'not integration')",
+]
