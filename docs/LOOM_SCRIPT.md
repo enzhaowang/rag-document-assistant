@@ -32,17 +32,18 @@ Everything you see runs locally with one `docker compose` command."
 
 ## 2. A normal answer with citations (0:30-1:30)
 
-[Click the example "Who must approve a refund of $800?"]
+[Click the example "What does error E4 mean on the Thermostat T3?"]
 
-"Let's ask a typical agent question: who must approve a refund of 800 dollars?"
+"Let's ask a typical agent question: what does error E4 mean on the Thermostat T3?"
 
-[Wait for the answer. Expand both sources.]
+[Wait for the answer. Expand the source.]
 
-"The answer is a Team Lead, within four business hours. Below it are the sources: the
-Returns and Refunds SOP, page 4, section 4.1, with the passage the answer came from and a
-relevance score. The model never writes the citation itself: it only returns the IDs of the
-passages it used, and the code turns those into document and page. So a citation can't point
-to a page that doesn't exist."
+"E4 on the T3 is a humidity sensor fault: power-cycle, and if it persists, start a warranty
+claim. This is a tricky one, because E4 means something different on the T2, and the answer
+picks the right model. Below it is the source: the T3 product guide, page 5, section 6, with
+the passage the answer came from and a relevance score. The model never writes the citation
+itself: it only returns the IDs of the passages it used, and the code turns those into
+document and page. So a citation can't point to a page that doesn't exist."
 
 [Type: "How long is the warranty on the Lumora Thermostat T2?" Then: "And on the T3?"]
 
