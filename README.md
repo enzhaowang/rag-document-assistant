@@ -8,7 +8,7 @@ Built with Python, LangChain, OpenAI, ChromaDB, FastAPI, Streamlit and Docker. T
 with 12 PDFs of a fictional smart-home company (Lumora Home Systems): product guides, SOPs,
 FAQs and a warranty policy, about 63 pages in total.
 
-![Chat UI: an answer with its cited sources expanded](docs/images/chat-ui.png)
+![Chat UI: a warranty question and the follow-up "And on the T3?", each answered with its cited sources (document, page and section)](docs/images/chat-ui.png)
 
 **Highlights**
 
@@ -26,7 +26,7 @@ FAQs and a warranty policy, about 63 pages in total.
 
 | Citations, expanded | Declining an out-of-scope question |
 |---|---|
-| ![Answer to "Who must approve a refund of $800?" with both cited passages expanded, showing document, page, section, relevance score and the quoted text](docs/images/citations.png) | ![The assistant declines "Who is the CEO of Lumora?" because the documents do not cover it](docs/images/refusal.png) |
+| ![Answer to "What does error E4 mean on the Thermostat T3?" with its source expanded: T3 product guide, page 5, section 6 Error Codes, relevance score 0.69 and the quoted passage that says E4 on the T3 refers to the humidity sensor](docs/images/citations.png) | ![The assistant declines "Who is the CEO of Lumora?" because the documents do not cover it](docs/images/refusal.png) |
 
 The evaluation report (excerpt of [eval/reports/summary.md](eval/reports/summary.md)):
 
